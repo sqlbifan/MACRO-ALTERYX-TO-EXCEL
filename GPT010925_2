@@ -1,0 +1,139 @@
+Option Explicit
+
+' ========= Controller: open workbook by NAME, process, and export to PDF =========
+Sub Run_On_File_ByName()
+    Const TARGET_FILE_NAME As String = "YourFile.xlsx" ' <-- change only the file name
+    Const TARGET_SHEET_NAME As String = ""             ' e.g., "Sheet1" (leave empty to use ActiveSheet)
+
+    Dim wb As Workbook, ws As Worksheet
+    Dim openedHere As Boolean
+    Dim callerCalc As XlCalculation
+
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        callerCalc = .Calculation
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+    End With
+
+    On Error GoTo CleanFail
+
+    ' 1) Check if workbook is already open by name
+    Dim w As Workbook
+    For Each w In Application.Workbooks
+        If StrComp(w.Name, TARGET_FILE_NAME, vbTextCompare) = 0 Then
+            Set wb = w
+            Exit For
+        End If
+    Next w
+
+    ' 2) If not open, try to open it from the folder of this macro workbook
+    If wb Is Nothing Then
+        Dim candidatePath As String
+        candidatePath = ThisWorkbook.Path & "\" & TARGET_FILE_NAME
+        If Dir(candidatePath) = "" Then
+            Err.Raise vbObjectError + 513, , "File not found: " & candidatePath
+        End If
+        Set wb = Workbooks.Open(Filename:=candidatePath, ReadOnly:=True)
+        openedHere = True
+    End If
+
+    ' 3) Pick target sheet
+    If Len(TARGET_SHEET_NAME) > 0 Then
+        Set ws = wb.Worksheets(TARGET_SHEET_NAME)
+    Else
+        Set ws = wb.ActiveSheet
+    End If
+
+    ' 4) Process the sheet and export to PDF
+    FormatSheet_And_ExportPDF ws
+
+CleanExit:
+    If openedHere Then wb.Close SaveChanges:=False
+
+    With Application
+        .ScreenUpdating = True
+        .DisplayAlerts = True
+        .Calculation = callerCalc
+        .EnableEvents = True
+    End With
+    Exit Sub
+
+CleanFail:
+    MsgBox "Failed: " & Err.Description, vbExclamation
+    Resume CleanExit
+End Sub
+
+' ========= Worker: perform RTL, keep Column C format, set fixed widths, export to PDF =========
+Private Sub FormatSheet_And_ExportPDF(ByVal ws As Worksheet)
+    Dim cFmt As String
+    Dim widths As Variant, i As Long
+    Dim defaultPath As String, fileName As String, fullPath As String
+
+    ' Preserve current number format of Column C (or force a specific pattern if needed)
+    cFmt = ws.Columns("C").NumberFormatLocal
+    ' Example to force a specific format instead:
+    ' cFmt = "dd/mm/yyyy hh:mm"
+
+    ' RTL layout
+    ws.DisplayRightToLeft = True
+    On Error Resume Next
+    ws.UsedRange.ReadingOrder = xlRTL
+    On Error GoTo 0
+
+    ' Re-apply date-time format to Column C
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Fixed column widths
+    widths = Array( _
+        Array("A", 12), _
+        Array("B", 18), _
+        Array("C", 18), _
+        Array("D", 25), _
+        Array("E", 12), _
+        Array("F", 35) _
+    )
+    For i = LBound(widths) To UBound(widths)
+        ws.Columns(widths(i)(0)).ColumnWidth = widths(i)(1)
+    Next i
+
+    ' Page setup
+    With ws.PageSetup
+        .Orientation = xlPortrait
+        .PaperSize = xlPaperA4
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = False
+        .LeftMargin = Application.CentimetersToPoints(1)
+        .RightMargin = Application.CentimetersToPoints(1)
+        .TopMargin = Application.CentimetersToPoints(1)
+        .BottomMargin = Application.CentimetersToPoints(1)
+        .CenterHorizontally = True
+    End With
+
+    ' Re-apply again just before export
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Export path & name (same folder as the opened workbook if available)
+    If Len(ws.Parent.Path) > 0 Then
+        defaultPath = ws.Parent.Path
+    Else
+        defaultPath = Environ$("USERPROFILE") & "\Desktop"
+    End If
+    fileName = ws.Name & "_" & Format(Now, "yyyymmdd_HHMM") & ".pdf"
+    fullPath = defaultPath & "\" & fileName
+
+    ' Export to PDF
+    On Error GoTo ExportErr
+    ws.ExportAsFixedFormat Type:=xlTypePDF, _
+                           Filename:=fullPath, _
+                           Quality:=xlQualityStandard, _
+                           IncludeDocProperties:=True, _
+                           IgnorePrintAreas:=False, _
+                           OpenAfterPublish:=False
+    Exit Sub
+
+ExportErr:
+    MsgBox "PDF export failed: " & Err.Description, vbExclamation
+End Sub
