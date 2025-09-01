@@ -1,9 +1,9 @@
 Option Explicit
 
-' ========= Controller: open workbook by NAME, process, and export to PDF =========
-Sub Run_On_File_ByName()
-    Const TARGET_FILE_NAME As String = "YourFile.xlsx" ' <-- change only the file name
-    Const TARGET_SHEET_NAME As String = ""             ' e.g., "Sheet1" (leave empty to use ActiveSheet)
+' ========= Controller: open workbook by FULL PATH, process, and export to PDF =========
+Sub Run_On_File_ByFullPath()
+    Const TARGET_FILE_PATH As String = "C:\Full\Path\YourFile.xlsx" ' <-- change to your full path
+    Const TARGET_SHEET_NAME As String = ""                           ' e.g., "Sheet1" (empty = ActiveSheet)
 
     Dim wb As Workbook, ws As Worksheet
     Dim openedHere As Boolean
@@ -19,23 +19,21 @@ Sub Run_On_File_ByName()
 
     On Error GoTo CleanFail
 
-    ' 1) Check if workbook is already open by name
+    ' 1) Check if the workbook is already open (match FullName)
     Dim w As Workbook
     For Each w In Application.Workbooks
-        If StrComp(w.Name, TARGET_FILE_NAME, vbTextCompare) = 0 Then
+        If StrComp(w.FullName, TARGET_FILE_PATH, vbTextCompare) = 0 Then
             Set wb = w
             Exit For
         End If
     Next w
 
-    ' 2) If not open, try to open it from the folder of this macro workbook
+    ' 2) If not open, open it by full path
     If wb Is Nothing Then
-        Dim candidatePath As String
-        candidatePath = ThisWorkbook.Path & "\" & TARGET_FILE_NAME
-        If Dir(candidatePath) = "" Then
-            Err.Raise vbObjectError + 513, , "File not found: " & candidatePath
+        If Dir(TARGET_FILE_PATH) = "" Then
+            Err.Raise vbObjectError + 513, , "File not found: " & TARGET_FILE_PATH
         End If
-        Set wb = Workbooks.Open(Filename:=candidatePath, ReadOnly:=True)
+        Set wb = Workbooks.Open(Filename:=TARGET_FILE_PATH, ReadOnly:=True)
         openedHere = True
     End If
 
@@ -115,7 +113,7 @@ Private Sub FormatSheet_And_ExportPDF(ByVal ws As Worksheet)
     ' Re-apply again just before export
     ws.Columns("C").NumberFormatLocal = cFmt
 
-    ' Export path & name (same folder as the opened workbook if available)
+    ' Export path & name (same folder as the workbook if available)
     If Len(ws.Parent.Path) > 0 Then
         defaultPath = ws.Parent.Path
     Else
