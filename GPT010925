@@ -1,0 +1,145 @@
+Option Explicit
+
+' ========= Controller: open a specific workbook, process, and export to PDF =========
+Sub Run_On_External_File()
+    Dim TARGET_FILE_PATH As String
+    Dim TARGET_SHEET_NAME As String  ' leave empty ("") to use ActiveSheet in the opened file
+    TARGET_FILE_PATH = "C:\Path\To\Your\File.xlsx" ' <-- change this path
+    TARGET_SHEET_NAME = ""                           ' e.g., "Sheet1"
+
+    Dim wb As Workbook, ws As Worksheet
+    Dim callerCalc As XlCalculation
+    Dim hadErr As Boolean
+
+    ' Performance & UX
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        callerCalc = .Calculation
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+    End With
+
+    On Error GoTo CleanFail
+
+    ' If path is blank or not found, let user pick a file
+    If Len(TARGET_FILE_PATH) = 0 Or Dir(TARGET_FILE_PATH) = "" Then
+        Dim fd As FileDialog
+        Set fd = Application.FileDialog(msoFileDialogFilePicker)
+        With fd
+            .AllowMultiSelect = False
+            .Title = "Select an Excel file"
+            .Filters.Clear
+            .Filters.Add "Excel Files", "*.xlsx; *.xlsm; *.xlsb; *.xls"
+            If .Show <> -1 Then GoTo CleanFail
+            TARGET_FILE_PATH = .SelectedItems(1)
+        End With
+    End If
+
+    ' Open the workbook (ReadOnly so we don't change it on disk)
+    Set wb = Workbooks.Open(Filename:=TARGET_FILE_PATH, ReadOnly:=True)
+
+    ' Pick the target sheet
+    If Len(TARGET_SHEET_NAME) > 0 Then
+        Set ws = wb.Worksheets(TARGET_SHEET_NAME)
+    Else
+        Set ws = wb.ActiveSheet
+    End If
+
+    ' Process the sheet and export to PDF
+    Call FormatSheet_And_ExportPDF(ws)
+
+    ' Close without saving (we only exported a PDF)
+    wb.Close SaveChanges:=False
+
+CleanExit:
+    ' Restore
+    With Application
+        .ScreenUpdating = True
+        .DisplayAlerts = True
+        .Calculation = callerCalc
+        .EnableEvents = True
+    End With
+    If Not hadErr Then MsgBox "Done.", vbInformation
+    Exit Sub
+
+CleanFail:
+    hadErr = True
+    On Error Resume Next
+    If Not wb Is Nothing Then wb.Close SaveChanges:=False
+    On Error GoTo 0
+    GoTo CleanExit
+End Sub
+
+' ========= Worker: perform RTL, fixed widths, keep Column C format, export to PDF =========
+Private Sub FormatSheet_And_ExportPDF(ByVal ws As Worksheet)
+    Dim cFmt As String
+    Dim widths As Variant, i As Long
+    Dim defaultPath As String, fileName As String, fullPath As String
+
+    ' Capture current number format of Column C (or force your own pattern if you prefer)
+    cFmt = ws.Columns("C").NumberFormatLocal
+    ' Example to force a specific format instead:
+    ' cFmt = "dd/mm/yyyy hh:mm"
+
+    ' RTL layout
+    ws.DisplayRightToLeft = True
+    On Error Resume Next
+    ws.UsedRange.ReadingOrder = xlRTL
+    On Error GoTo 0
+
+    ' Re-apply date-time format to Column C
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Fixed column widths (edit as needed)
+    widths = Array( _
+        Array("A", 12), _
+        Array("B", 18), _
+        Array("C", 18), _
+        Array("D", 25), _
+        Array("E", 12), _
+        Array("F", 35) _
+    )
+    For i = LBound(widths) To UBound(widths)
+        ws.Columns(widths(i)(0)).ColumnWidth = widths(i)(1)
+    Next i
+
+    ' Page setup
+    With ws.PageSetup
+        .Orientation = xlPortrait
+        .PaperSize = xlPaperA4
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = False
+        .LeftMargin = Application.CentimetersToPoints(1)
+        .RightMargin = Application.CentimetersToPoints(1)
+        .TopMargin = Application.CentimetersToPoints(1)
+        .BottomMargin = Application.CentimetersToPoints(1)
+        .CenterHorizontally = True
+    End With
+
+    ' Re-apply again just before export (belt-and-suspenders)
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Export path & name (same folder as the opened workbook if available)
+    If Len(ws.Parent.Path) > 0 Then
+        defaultPath = ws.Parent.Path
+    Else
+        defaultPath = Environ$("USERPROFILE") & "\Desktop"
+    End If
+    fileName = ws.Name & "_" & Format(Now, "yyyymmdd_HHMM") & ".pdf"
+    fullPath = defaultPath & "\" & fileName
+
+    ' Export to PDF
+    On Error GoTo ExportErr
+    ws.ExportAsFixedFormat Type:=xlTypePDF, _
+                           Filename:=fullPath, _
+                           Quality:=xlQualityStandard, _
+                           IncludeDocProperties:=True, _
+                           IgnorePrintAreas:=False, _
+                           OpenAfterPublish:=False
+    Exit Sub
+
+ExportErr:
+    MsgBox "PDF export failed: " & Err.Description, vbExclamation
+End Sub
