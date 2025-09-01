@@ -1,0 +1,78 @@
+Option Explicit
+
+' ========= Controller: open workbook by FULL PATH, process, and export to PDF =========
+Sub Run_On_File_ByFullPath()
+    Const TARGET_FILE_PATH As String = "C:\Full\Path\YourFile.xlsx" ' <-- change to your full path
+    Const TARGET_SHEET_NAME As String = ""                           ' e.g., "Sheet1" (empty = ActiveSheet)
+
+    Dim wb As Workbook, ws As Worksheet
+    Dim openedHere As Boolean
+    Dim callerCalc As XlCalculation
+
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        callerCalc = .Calculation
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+    End With
+
+    On Error GoTo CleanFail
+
+    ' 1) Check if the workbook is already open (match FullName)
+    Dim w As Workbook
+    For Each w In Application.Workbooks
+        If StrComp(w.FullName, TARGET_FILE_PATH, vbTextCompare) = 0 Then
+            Set wb = w
+            Exit For
+        End If
+    Next w
+
+    ' 2) If not open, open it by full path
+    If wb Is Nothing Then
+        If Dir(TARGET_FILE_PATH) = "" Then
+            Err.Raise vbObjectError + 513, , "File not found: " & TARGET_FILE_PATH
+        End If
+        Set wb = Workbooks.Open(Filename:=TARGET_FILE_PATH, ReadOnly:=True)
+        openedHere = True
+    End If
+
+    ' 3) Pick target sheet
+    If Len(TARGET_SHEET_NAME) > 0 Then
+        Set ws = wb.Worksheets(TARGET_SHEET_NAME)
+    Else
+        Set ws = wb.ActiveSheet
+    End If
+
+    ' 4) Process the sheet and export to PDF
+    FormatSheet_And_ExportPDF ws
+
+CleanExit:
+    If openedHere Then wb.Close SaveChanges:=False
+
+    With Application
+        .ScreenUpdating = True
+        .DisplayAlerts = True
+        .Calculation = callerCalc
+        .EnableEvents = True
+    End With
+    Exit Sub
+
+CleanFail:
+    MsgBox "Failed: " & Err.Description, vbExclamation
+    Resume CleanExit
+End Sub
+
+' ========= Worker: perform RTL, keep Column C format, set fixed widths, export to PDF =========
+Private Sub FormatSheet_And_ExportPDF(ByVal ws As Worksheet)
+    Dim cFmt As String
+    Dim widths As Variant, i As Long
+    Dim defaultPath As String, fileName As String, fullPath As String
+
+    ' Preserve current number format of Column C (or force a specific pattern if needed)
+    cFmt = ws.Columns("C").NumberFormatLocal
+    ' Example to force a specific format instead:
+    ' cFmt = "dd/mm/yyyy hh:mm"
+
+    ' RTL layout
+    ws.Disp
