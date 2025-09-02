@@ -1,0 +1,38 @@
+Option Explicit
+
+' --- single workbook, two macros in sequence ---
+Dim workbook_path
+workbook_path = ".\VBA_builder_Template5+.xlsm"
+
+Dim fso, fullPath, xl
+Set fso = CreateObject("Scripting.FileSystemObject")
+fullPath = fso.GetAbsolutePathName(workbook_path)
+
+Set xl = CreateObject("Excel.Application")
+xl.Visible = False
+xl.DisplayAlerts = False
+
+xl.Workbooks.Open fullPath
+
+' Run first macro
+On Error Resume Next
+xl.Run "'" & fullPath & "'!Run_On_File_ByFullPath_over5"
+If Err.Number <> 0 Then
+  WScript.Echo "Error running Run_On_File_ByFullPath_over5: " & Err.Description
+  Err.Clear
+End If
+
+' Run second macro
+xl.Run "'" & fullPath & "'!Run_On_File_ByFullPath_under5"
+If Err.Number <> 0 Then
+  WScript.Echo "Error running Run_On_File_ByFullPath_under5: " & Err.Description
+  Err.Clear
+End If
+On Error GoTo 0
+
+xl.ActiveWorkbook.Save
+xl.ActiveWorkbook.Close False
+xl.Quit
+
+Set xl = Nothing
+Set fso = Nothing
