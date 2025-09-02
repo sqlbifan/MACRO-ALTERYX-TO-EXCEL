@@ -1,0 +1,40 @@
+
+Option Explicit
+
+' -----------
+dim workbook_path
+workbook_path = ".\VBA_builder_Template5+.xlsm"
+' Place your workbook file here
+dim macro_name
+macro_name = "Run_On_File_ByFullPath_over5"
+' Place your macro name here
+' -----------
+
+
+dim file_system
+dim full_workbook_path
+set file_system = CreateObject("Scripting.FileSystemObject")
+full_workbook_path = file_system.GetAbsolutePathName(workbook_path)
+' File address housekeeping
+
+Dim ExcelProgram
+Set ExcelProgram = CreateObject("Excel.Application")
+' Tell the script what Excel is
+
+ExcelProgram.Application.WorkBooks.Open full_workbook_path
+' Open your workbook
+
+ExcelProgram.Application.Visible = False
+' Open it in the background
+
+ExcelProgram.Application.Run "'"&full_workbook_path&"'!"&macro_name
+' Run your Macro - this tells the Excel running in the background to find this workbook and macro.
+
+ExcelProgram.Application.displayalerts = False
+' Do not show prompts since we want this to be automated - Could switch to True to get prompts
+
+ExcelProgram.Activeworkbook.Save
+' Do not forget to save your work
+
+ExcelProgram.Activeworkbook.Close
+' Close the workbook
