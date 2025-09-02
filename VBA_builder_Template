@@ -1,40 +1,47 @@
-
 Option Explicit
 
-' -----------
-dim workbook_path
-workbook_path = ".\VBA_builder_Template5+.xlsm"
-' Place your workbook file here
-dim macro_name
-macro_name = "Run_On_File_ByFullPath_over5"
-' Place your macro name here
-' -----------
+' === Configure workbook/macro pairs ===
+Dim tasks
+tasks = Array( _
+    Array(".\VBA_builder_Template5+.xlsm", "Run_On_File_ByFullPath_over5"), _
+    Array(".\VBA_builder_Template.xlsm",  "Run_On_File_ByFullPath_under5") _
+)
 
-
-dim file_system
-dim full_workbook_path
-set file_system = CreateObject("Scripting.FileSystemObject")
-full_workbook_path = file_system.GetAbsolutePathName(workbook_path)
-' File address housekeeping
-
-Dim ExcelProgram
+' === Objects ===
+Dim fso, ExcelProgram
+Set fso = CreateObject("Scripting.FileSystemObject")
 Set ExcelProgram = CreateObject("Excel.Application")
-' Tell the script what Excel is
 
-ExcelProgram.Application.WorkBooks.Open full_workbook_path
-' Open your workbook
+ExcelProgram.Visible = False
+ExcelProgram.DisplayAlerts = False
 
-ExcelProgram.Application.Visible = False
-' Open it in the background
+On Error GoTo ErrHandler
 
-ExcelProgram.Application.Run "'"&full_workbook_path&"'!"&macro_name
-' Run your Macro - this tells the Excel running in the background to find this workbook and macro.
+' === Run each workbook/macro ===
+Dim i
+For i = LBound(tasks) To UBound(tasks)
+    Dim workbook_path, macro_name, full_workbook_path, wb
+    workbook_path = tasks(i)(0)
+    macro_name    = tasks(i)(1)
 
-ExcelProgram.Application.displayalerts = False
-' Do not show prompts since we want this to be automated - Could switch to True to get prompts
+    full_workbook_path = fso.GetAbsolutePathName(workbook_path)
 
-ExcelProgram.Activeworkbook.Save
-' Do not forget to save your work
+    Set wb = ExcelProgram.Workbooks.Open(full_workbook_path)
+    ExcelProgram.Run "'" & full_workbook_path & "'!" & macro_name
+    wb.Save
+    wb.Close False
+    Set wb = Nothing
+Next
 
-ExcelProgram.Activeworkbook.Close
-' Close the workbook
+' === Cleanup ===
+CleanUp:
+If Not ExcelProgram Is Nothing Then ExcelProgram.Quit
+Set ExcelProgram = Nothing
+Set fso = Nothing
+WScript.Quit 0
+
+' === Error handling ===
+ErrHandler:
+' Uncomment next line if you want a popup with error details:
+' WScript.Echo "Error " & Err.Number & " (" & Err.Description & ")"
+Resume CleanUp
