@@ -1,0 +1,221 @@
+Option Explicit
+
+' ========= Controller: open workbook by FULL PATH, process, and export to TWO PDFs =========
+Sub Run_On_File_ByFullPath_over5()
+    Const TARGET_FILE_PATH As String = "\\bll-bankait\Bankait_Dat\Big_Data\CDO\ktov_files\WTB5+.xlsx" ' <— change to your full path
+    Const TARGET_SHEET_NAME As String = "Sheet1"                                                     ' empty = ActiveSheet
+
+    ' === Set the TWO PDF names (fixed or with tokens) ===
+    ' Examples:
+    '   "MyReport.pdf"
+    '   "MyReport_{Sheet}_{YYYYMMDD}.pdf"
+    '   "Export_{YYYY}-{MM}-{DD}_{HH}{NN}.pdf"
+    Const PDF_NAME1_PATTERN As String = "ktov_over_5_{YYYYMMDD}_A.pdf"
+    Const PDF_NAME2_PATTERN As String = "ktov_over_5_{YYYYMMDD}_B.pdf"
+
+    ' Output directory (optional). Leave empty ("") to use workbook folder or Desktop fallback.
+    Const PDF_OUTPUT_DIR As String = ""  ' e.g. "C:\Reports\Daily"
+
+    Dim wb As Workbook, ws As Worksheet
+    Dim openedHere As Boolean
+    Dim callerCalc As XlCalculation
+
+    With Application
+        .ScreenUpdating = False
+        .DisplayAlerts = False
+        callerCalc = .Calculation
+        .Calculation = xlCalculationManual
+        .EnableEvents = False
+    End With
+
+    On Error GoTo CleanFail
+
+    ' Check if the workbook is already open
+    Dim w As Workbook
+    For Each w In Application.Workbooks
+        If StrComp(w.FullName, TARGET_FILE_PATH, vbTextCompare) = 0 Then
+            Set wb = w
+            Exit For
+        End If
+    Next w
+
+    ' Open it if needed
+    If wb Is Nothing Then
+        If Dir(TARGET_FILE_PATH) = "" Then
+            Err.Raise vbObjectError + 513, , "File not found: " & TARGET_FILE_PATH
+        End If
+        Set wb = Workbooks.Open(FileName:=TARGET_FILE_PATH, ReadOnly:=True)
+        openedHere = True
+    End If
+
+    ' Pick target sheet
+    If Len(TARGET_SHEET_NAME) > 0 Then
+        Set ws = wb.Worksheets(TARGET_SHEET_NAME)
+    Else
+        Set ws = wb.ActiveSheet
+    End If
+
+    ' === Process once and export TWICE with two names ===
+    FormatSheet_And_ExportPDF ws, PDF_NAME1_PATTERN, PDF_OUTPUT_DIR
+    FormatSheet_And_ExportPDF ws, PDF_NAME2_PATTERN, PDF_OUTPUT_DIR
+
+CleanExit:
+    If openedHere Then wb.Close SaveChanges:=False
+    With Application
+        .ScreenUpdating = True
+        .DisplayAlerts = True
+        .Calculation = callerCalc
+        .EnableEvents = True
+    End With
+    Exit Sub
+
+CleanFail:
+    MsgBox "Failed: " & Err.Description, vbExclamation
+    Resume CleanExit
+End Sub
+
+' ========= Worker: perform RTL, keep Column C format, set fixed widths, export to PDF =========
+Private Sub FormatSheet_And_ExportPDF(ByVal ws As Worksheet, _
+                                      Optional ByVal pdfNamePattern As String = "", _
+                                      Optional ByVal outputDir As String = "")
+    Dim cFmt As String
+    Dim widths As Variant, i As Long
+    Dim basePath As String, fileName As String, fullPath As String
+
+    ' Preserve current number format of Column C (or force a specific pattern if needed)
+    cFmt = ws.Columns("C").NumberFormatLocal
+    ' Example to force a specific format instead:
+    ' cFmt = "dd/mm/yyyy hh:mm"
+
+    ' RTL layout
+    ws.DisplayRightToLeft = True
+    On Error Resume Next
+    ws.UsedRange.ReadingOrder = xlRTL
+    On Error GoTo 0
+
+    ' Re-apply date-time format to Column C
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Fixed column widths
+    widths = Array( _
+        Array("A", 25), _
+        Array("B", 10), _
+        Array("C", 25), _
+        Array("D", 20), _
+        Array("E", 10), _
+        Array("F", 20), _
+        Array("G", 100) _
+    )
+    For i = LBound(widths) To UBound(widths)
+        ws.Columns(widths(i)(0)).ColumnWidth = widths(i)(1)
+    Next i
+
+    ' Page setup
+    With ws.PageSetup
+        .Orientation = xlPortrait
+        .PaperSize = xlPaperA4
+        .Zoom = False
+        .FitToPagesWide = 1
+        .FitToPagesTall = False
+        .LeftMargin = Application.CentimetersToPoints(1)
+        .RightMargin = Application.CentimetersToPoints(1)
+        .TopMargin = Application.CentimetersToPoints(1)
+        .BottomMargin = Application.CentimetersToPoints(1)
+        .CenterHorizontally = True
+    End With
+
+    ' Re-apply again just before export
+    ws.Columns("C").NumberFormatLocal = cFmt
+
+    ' Determine output folder
+    If Len(Trim$(outputDir)) > 0 Then
+        basePath = outputDir
+    ElseIf Len(ws.Parent.Path) > 0 Then
+        basePath = ws.Parent.Path
+    Else
+        basePath = Environ$("USERPROFILE") & "\Desktop"
+    End If
+    If Right$(basePath, 1) = "\" Or Right$(basePath, 1) = "/" Then
+        basePath = Left$(basePath, Len(basePath) - 1)
+    End If
+
+    ' Build PDF file name
+    If Len(pdfNamePattern) > 0 Then
+        fileName = SanitizeFileName(BuildPdfFileName(pdfNamePattern, ws))
+        If LCase$(Right$(fileName, 4)) <> ".pdf" Then fileName = fileName & ".pdf"
+    Else
+        fileName = ws.Name & "_" & Format(Now, "yyyymmdd_hhnn") & ".pdf"
+    End If
+    fullPath = basePath & "\" & fileName
+
+    ' Ensure we don't overwrite silently: if exists, append (2), (3)...
+    fullPath = NextAvailablePath(fullPath)
+
+    ' Export to PDF
+    On Error GoTo ExportErr
+    ws.ExportAsFixedFormat Type:=xlTypePDF, _
+                           FileName:=fullPath, _
+                           Quality:=xlQualityStandard, _
+                           IncludeDocProperties:=True, _
+                           IgnorePrintAreas:=False, _
+                           OpenAfterPublish:=False
+    Exit Sub
+ExportErr:
+    MsgBox "PDF export failed: " & Err.Description, vbExclamation
+End Sub
+
+' ========= Helpers =========
+Private Function BuildPdfFileName(ByVal pattern As String, ByVal ws As Worksheet) As String
+    Dim s As String
+    s = pattern
+    ' Replace combined tokens first
+    s = Replace(s, "{YYYYMMDD}", Format(Now, "yyyymmdd"))
+    ' Replace basic tokens
+    s = Replace(s, "{YYYY}", Format(Now, "yyyy"))
+    s = Replace(s, "{YY}", Format(Now, "yy"))
+    s = Replace(s, "{MM}", Format(Now, "mm"))
+    s = Replace(s, "{DD}", Format(Now, "dd"))
+    s = Replace(s, "{HH}", Format(Now, "hh"))
+    s = Replace(s, "{NN}", Format(Now, "nn")) ' minutes
+    s = Replace(s, "{Sheet}", ws.Name)
+    s = Replace(s, "{Book}", ws.Parent.Name)
+    BuildPdfFileName = s
+End Function
+
+Private Function SanitizeFileName(ByVal s As String) As String
+    ' Remove characters invalid in Windows file names: \ / : * ? " < > |
+    Dim badChars As Variant, i As Long
+    badChars = Array("\", "/", ":", "*", "?", """", "<", ">", "|")
+    For i = LBound(badChars) To UBound(badChars)
+        s = Replace$(s, badChars(i), "_")
+    Next i
+    SanitizeFileName = s
+End Function
+
+Private Function NextAvailablePath(ByVal fullPath As String) As String
+    ' If fullPath exists, append " (2)", " (3)", ... before the extension
+    Dim base As String, ext As String, n As Long, testPath As String, p As Long
+    p = InStrRev(fullPath, ".")
+    If p > 0 Then
+        base = Left$(fullPath, p - 1)
+        ext = Mid$(fullPath, p)
+    Else
+        base = fullPath
+        ext = ""
+    End If
+
+    If Dir(fullPath) = "" Then
+        NextAvailablePath = fullPath
+        Exit Function
+    End If
+
+    n = 2
+    Do
+        testPath = base & " (" & n & ")" & ext
+        If Dir(testPath) = "" Then
+            NextAvailablePath = testPath
+            Exit Function
+        End If
+        n = n + 1
+    Loop
+End Function
