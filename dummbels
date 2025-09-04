@@ -1,0 +1,275 @@
+{
+  "data": {"name": "dataset"},
+  "transform": [
+    {
+    "joinaggregate": [
+      {
+        "op": "max",
+        "field": "Sales",
+        "as": "MaxActual"
+      }]},
+      {
+    "joinaggregate": [
+      {
+        "op": "max",
+        "field": "Region",
+        "as": "Maxplan"
+      }]}
+    ],
+   "width": 600,
+    "height": 1500, 
+ 
+  
+  "layer": [
+    //target bar
+    {
+      
+      //"height": "container",
+      "description": "target bar",
+      "mark": {
+        "type": "rule",
+        "color": "#E6E6E6",
+        "height": 25,
+        "point": {
+          "yOffset": -8,
+          "size": 0.003,
+          "color": "#E6E6E6",
+          "height": 30
+        },
+        "stroke": "#e3e3e3"
+      },
+      "encoding": {
+        "y": {
+            "field": "Category",
+            "type": "nominal",
+            "axis": {
+              "grid": true,
+              "gridColor": "#f0efef",
+              "gridOpacity": 0.5,
+              "ticks": true,
+              "tickColor": "#f0efef",
+              "tickBand": "extent",
+              "tickSize": 300,
+              "title": null,
+              "labelFontSize": 15,
+              "labelPadding": -60
+            }
+        },
+        "x": {
+          "aggregate": "min",
+          "field": "Region",
+          "type": "quantitative",
+          "axis": 
+          {
+              "grid": true,
+              "gridColor": "#c3c3c3",
+              "title": null,
+              "labels": false,
+              "labelFontSize": 10,
+              "format": "$~s",
+              "tickCount": 5
+            }
+        },
+        "x2": {
+            "aggregate": "max",
+            "field": "Sales"
+          },
+        "opacity": {
+            "condition": {
+              "test": {
+                "field": "__selected__",
+                "equal": "off"
+              },
+              "value": 0.3
+            },
+            "value": 1
+          }
+      }
+    },
+    //actual bar
+    {
+      "height": "container",
+      "description": "actual bar",
+      "mark": {
+          "type": "point",
+          "tooltip": true,
+          "size": 70,
+          "color": "#c7c6c6",
+          "stroke": "black",
+          "strokeWidth": 0.2
+        },
+          "encoding": {
+          "y": {
+            "field": "Category",
+            "type": "nominal"
+          },
+          "x": {
+            "aggregate": "sum",
+            "field": "Sales",
+            "type": "quantitative"
+          },
+          "tooltip": [
+              {
+              "field": "Category",
+              "type": "nominal",
+              "title": "מרחב"
+            },         
+            {
+              "field": "Region",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+            },
+            {
+              "field": "Sales",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+            }
+          ],
+         
+          "opacity": {
+            "condition": {
+              "test": {
+                "field": "__selected__",
+                "equal": "off"
+              },
+              "value": 0.3
+            },
+            "value": 1
+          }
+        }
+    },
+    //target mark
+ {
+        "height": "container",
+        "mark": {
+          "type": "point",
+          "tooltip": true,
+          "size": 70,
+          "color": "#FFFFFF",
+          "stroke": "black",
+          "strokeWidth": 0.3
+        },
+        "encoding": {
+          "y": {
+            "field": "Category",
+            "type": "nominal"
+          },
+          "x": {
+            "aggregate": "sum",
+            "field": "Region",
+            "type": "quantitative"
+          },
+          "tooltip": [
+              {
+              "field": "Category",
+              "type": "nominal",
+              "title": "מרחב"
+            },                 
+            {
+              "field": "Region",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+            },
+            {
+              "field": "Sales",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+            }
+          ],
+         
+          "opacity": {
+            "condition": {
+              "test": {
+                "field": "__selected__",
+                "equal": "off"
+              },
+              "value": 0.3
+            },
+            "value": 1
+          }
+        }
+      },
+      {
+        "height": "container",
+        "mark": {
+          "type": "text",
+          "font": "Segoe UI",
+          "fontWeight": "bold",
+          "size": 12,
+          "xOffset": {
+          "expr": "datum['RATIO'] < 1 ? 25 : -30"
+        },
+          "color": {
+          "expr": "datum['RATIO'] < 1 ? '#ff7070': '#4D8FF7'"
+        }
+        },
+        "encoding": {
+          "text": {
+          "field": "RATIO",
+          "format": "#,#0.0%'",
+          //"format": "#,##0,,.0M'",
+          "formatType": "pbiFormat"
+        },
+          "y": {
+            "field": "Category",
+            "type": "nominal"
+          },
+          "x": {
+            "aggregate": "sum",
+            "field": "Region",
+            "type": "quantitative"
+          },
+          
+         
+          "opacity": {
+            "condition": {
+              "test": {
+                "field": "__selected__",
+                "equal": "off"
+              },
+              "value": 0.3
+            },
+            "value": 1
+          }
+        }
+      }
+    //actual label
+    
+    //target label
+    
+    //ACTUAL_vs_TARGET label
+
+  ],
+  "encoding": {
+    "y": {
+      "field": "Category",
+      "type": "nominal",
+      "axis": {
+        "labelFont": "Segoe UI"
+        ,"labelFontSize": 15
+        ,"labelFontWeight": "normal",
+        "labelAlign": "right",
+        "orient": "right"
+        },
+      "title": null,
+      "sort": {
+        "op": "sum",
+        "field": "RATIO",
+        "order": "descending"
+      }
+    },
+    "x": {
+      "field": "Sales",
+      "type": "quantitative",
+      "axis": null
+    }
+  }
+}
