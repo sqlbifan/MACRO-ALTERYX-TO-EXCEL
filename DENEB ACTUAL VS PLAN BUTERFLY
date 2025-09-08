@@ -1,0 +1,174 @@
+{
+  "data": { "name": "dataset" },
+
+  "transform": [
+    { "joinaggregate": [{ "op": "max", "field": "ACTUAL", "as": "MaxActual" }] },
+    { "joinaggregate": [{ "op": "max", "field": "plan", "as": "Maxplan" }] }
+  ],
+
+  "hconcat": [
+    {
+      "data": { "name": "dataset" },
+      "transform": [
+        { "fold": ["ACTUAL", "plan", "ACTUAL_vs_TARGET"], "as": ["metric", "value"] },
+        { "calculate": "-datum.value", "as": "valueNeg" }
+      ],
+      "mark": { "type": "bar" },
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "axis": {
+            "labelFont": "Segoe UI",
+            "labelFontSize": 10,
+            "labelFontWeight": "bold"
+          },
+          "title": null,
+          "sort": { "op": "sum", "field": "ACTUAL", "order": "descending" }
+        },
+        "x": {
+          "field": "valueNeg",
+          "type": "quantitative",
+          "axis": {
+            "orient": "top",
+            "title": null,
+            "labelExpr": "abs(datum.value)"
+          }
+        },
+        "color": {
+          "field": "metric",
+          "type": "nominal",
+          "scale": {
+            "domain": ["ACTUAL", "plan", "ACTUAL_vs_TARGET"],
+            "range": ["#094780", "#808080", "#70BBFF"]
+          },
+          "title": null
+        },
+        "tooltip": [
+          { "field": "ZONE_DESC", "type": "nominal" },
+          { "field": "metric", "type": "nominal" },
+          { "field": "value", "type": "quantitative", "format": ",.2f" }
+        ]
+      },
+      "width": 220
+    },
+
+    {
+      "layer": [
+        {
+          "description": "target bar",
+          "mark": {
+            "type": "bar",
+            "color": "#E6E6E6",
+            "height": 25,
+            "point": { "yOffset": -8, "size": 0.003, "color": "#E6E6E6", "height": 30 },
+            "stroke": "#e3e3e3"
+          },
+          "encoding": {
+            "x": { "field": "plan", "type": "quantitative", "axis": null }
+          }
+        },
+        {
+          "description": "actual bar",
+          "mark": { "type": "bar", "color": "#094780", "height": 45, "stroke": "#094780" }
+        },
+        {
+          "description": "target mark",
+          "mark": {
+            "type": "rule",
+            "color": "#cccccc",
+            "height": 16,
+            "point": {
+              "shape": "M0 0h1v15h-2v-15z",
+              "yOffset": -13,
+              "size": 12,
+              "color": { "expr": "datum['ACTUAL_vs_TARGET']>1? '#95D59C': '#808080'" },
+              "opacity": { "expr": "datum['ACTUAL_vs_TARGET']>1? 0.5: 1" },
+              "height": 30
+            },
+            "stroke": "#FFFFFF00"
+          },
+          "encoding": {
+            "x": { "field": "plan", "type": "quantitative", "axis": null }
+          }
+        },
+        {
+          "description": "actual label",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "bold",
+            "color": "#70BBFF",
+            "align": "left",
+            "xOffset": { "expr": "datum['ACTUAL'] < 70 ? 2 : -40" },
+            "yOffset": -4,
+            "size": 15
+          },
+          "encoding": {
+            "text": {
+              "field": "ACTUAL",
+              "format": "#,##0,,.0M'",
+              "formatType": "pbiFormat"
+            },
+            "x": { "field": "ACTUAL", "type": "quantitative", "axis": null }
+          }
+        },
+        {
+          "description": "target label",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "bold",
+            "color": { "expr": "datum['ACTUAL_vs_TARGET']>1? '#95D59C': '#808080'" },
+            "align": "left",
+            "yOffset": { "expr": "datum['ACTUAL_vs_TARGET']<1 ? 0 : -16" },
+            "xOffset": 3,
+            "size": 9
+          },
+          "encoding": {
+            "text": {
+              "field": "plan",
+              "format": "#,##0,,.0M'",
+              "formatType": "pbiFormat"
+            },
+            "x": { "field": "plan", "type": "quantitative", "axis": null }
+          }
+        },
+        {
+          "description": "ACTUAL_vs_TARGET label",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "bold",
+            "align": "left",
+            "color": { "expr": "datum['ACTUAL_vs_TARGET']>0? '#70BBFF': '#FFFFFF00'" },
+            "yOffset": 6,
+            "xOffset": { "expr": "datum['ACTUAL'] < 70? 2: -35" },
+            "size": 9
+          },
+          "encoding": {
+            "text": { "field": "ACTUAL_vs_TARGET", "format": "##0.0%'", "formatType": "pbiFormat" },
+            "x": { "field": "ACTUAL", "type": "quantitative", "axis": null }
+          }
+        }
+      ],
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "axis": {
+            "labelFont": "Segoe UI",
+            "labelFontSize": 10,
+            "labelFontWeight": "bold"
+          },
+          "title": null,
+          "sort": { "op": "sum", "field": "ACTUAL", "order": "descending" }
+        },
+        "x": { "field": "ACTUAL", "type": "quantitative", "axis": null }
+      },
+      "width": 320
+    }
+  ],
+
+  "resolve": { "scale": { "y": "shared" } }
+}
