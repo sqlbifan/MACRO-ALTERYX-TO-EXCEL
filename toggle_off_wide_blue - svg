@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="160" viewBox="0 0 400 160">
+  <defs>
+    <!-- Background white -->
+    <linearGradient id="bgWhite" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f0f0f0"/>
+    </linearGradient>
+
+    <!-- Blue knob shading -->
+    <radialGradient id="knobBlue" cx="35%" cy="35%" r="65%">
+      <stop offset="0%" stop-color="#66c2ff" stop-opacity="1"/>
+      <stop offset="100%" stop-color="#007acc" stop-opacity="1"/>
+    </radialGradient>
+
+    <!-- Shadow filter -->
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.25"/>
+    </filter>
+  </defs>
+
+  <!-- Toggle background (white) -->
+  <g filter="url(#shadow)">
+    <rect x="5" y="5" rx="80" ry="80" width="390" height="150" fill="url(#bgWhite)" stroke="#cccccc" stroke-width="2"/>
+  </g>
+
+  <!-- Blue Knob positioned on the left -->
+  <g filter="url(#shadow)">
+    <circle cx="90" cy="80" r="58" fill="url(#knobBlue)"/>
+    <circle cx="90" cy="80" r="58" fill="none" stroke="#005fa3" stroke-width="3" opacity="0.8"/>
+  </g>
+</svg>
