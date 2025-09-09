@@ -1,0 +1,44 @@
+דרך A (מומלצת – שליטה מלאה): שכבת rule בכל חצי
+
+מוסיפים חישוב לטווח ה־X בכל צד, ואז שכבת קו דק מהאמצע (0) עד קצה אותו צד. כך הקווים “נפגשים” בדיוק באמצע ויוצרים קו רציף.
+
+תוספות לחלק השמאלי
+
+בתור ה־transform של השמאלי, אחרי ה־joinaggregate, הוסף:
+
+{ "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2", "as": "GRID_XMIN_L" }
+
+
+בתוך ה־layer של השמאלי, הוסף שכבה (מומלץ בראש הרשימה כדי להיות מאחורי העמודות, או להגדיר zindex):
+
+{
+  "name": "gridlines_left",
+  "mark": { "type": "rule", "color": "#E6E6E6", "size": 1, "opacity": 1, "zindex": 0 },
+  "encoding": {
+    "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+    "x": { "field": "GRID_XMIN_L", "type": "quantitative" },
+    "x2": { "value": 0 }
+  }
+}
+
+תוספות לחלק הימני
+
+בתור ה־transform של הימני, אחרי ה־joinaggregate, הוסף:
+
+{ "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R" }
+
+
+בתוך ה־layer של הימני, הוסף:
+
+{
+  "name": "gridlines_right",
+  "mark": { "type": "rule", "color": "#E6E6E6", "size": 1, "opacity": 1, "zindex": 0 },
+  "encoding": {
+    "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+    "x": { "value": 0 },
+    "x2": { "field": "GRID_XMAX_R", "type": "quantitative" }
+  }
+}
+
+
+טיפ: אם תרצה שהקווים יהיו “מאחורי” העמודות, השאר zindex: 0. אם תרצה לראות אותם מעל העמודות, הגבר את ה־zindex או מקם את שכבת הקווים אחרי שכבות ה־bar.
