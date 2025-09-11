@@ -1,0 +1,124 @@
+{
+  "data": {
+    "name": "dataset"
+    
+  },
+
+  "width": "container",
+  "height": "container",
+  "padding":{"left": 5, "top": 0, "right": 5, "bottom": 0},
+
+  "title": {
+    "text": "מיצוי מעלות",
+    "align": "center",
+    "font": "Segoe UI",
+    "fontSize": 17,
+    "fontWeight":"bold",
+    "color": "#5D5D67",
+    "dy": 25
+    
+  },    
+      
+  "layer": [
+    {
+      
+      "description": "Compe1_number_label",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "color": "#ffffff00",
+       "size": 15,
+        "fontWeight": "bold",
+        "xOffset": 0,
+        "yOffset":-50
+      },
+      "encoding": {
+        "text": {
+          "value": "אחוז מכירה מהלידים שהומרו בתקופה"
+        },
+       
+        "y": {
+         "value": 0
+            }
+      }
+      
+    },
+    
+    {  
+  
+      "description": "CURRENT_number",
+      "mark": {
+        "type": "text",
+        "font": "Century Gothic, Segoe UI",
+        //"color": "#070762",
+       // "size": 37,
+        "fontWeight": "normal",
+        //"fontStyle": "italic",
+
+        "xOffset": 0,
+        "yOffset": -5
+      },
+      "encoding": {
+        "text": {
+          "field": "APP_SFID_DCOUNT_CURRENT_ALL_STATUS%",
+          "format": "#,#0.0%'",
+          "formatType": "pbiFormat"
+          
+        },
+        "color": {
+          "condition": {"param": "highlight","empty": false,"value": "#4D8FF7"}
+          ,"value": "#070762"},
+        "size": {
+          "condition": {"param": "highlight","empty": false,"value": 35}
+          ,"value": 37},
+        "y": {
+              "value": 0
+            }
+      }
+    },
+    {  
+      "params": [
+    {
+      "name": "highlight",
+      "select": {"type": "point", "on": "pointerover"
+      , "clear": "mouseout"
+      }
+    },
+    {"name": "select", "select": "point"}
+  ],
+      "description": "HOVER_TRIGER",
+      "mark": {
+        "type": "bar",
+        "color": "#ffffff00",
+        //"color": "#4682b4",
+        "height": 120,
+        //"width": 200,
+        "xOffset": 0,
+        "yOffset": 0,
+         "tooltip": true
+      },
+      "encoding": {
+     
+        
+        "y": {
+              "value": 0
+            }
+      }
+    }
+   
+  ],
+  "encoding": {
+  "y": {
+      "field": "STAGE_IND_APP",
+      "type": "nominal",
+      "axis": {
+        "labelFont": "Segoe UI"
+        ,"labelFontSize": 10
+        ,"labelFontWeight": "bold"
+        },
+      "title": null
+     
+    }
+
+  }
+}
