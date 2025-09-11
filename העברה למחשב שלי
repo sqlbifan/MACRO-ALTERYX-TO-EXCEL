@@ -1,41 +1,11 @@
-מעולה — הנה תיקון קצר שמבטיח ששני הצדדים ימיינו לפי ACTUAL בסדר יורד באופן עקבי:
-
-מה לשנות
-1) להוסיף window שמחשב דירוג לפי ACTUAL בשני הצדדים
-
-ב־LEFT (בתחילת ה־transform, אחרי החישובים הקיימים) הוסף:
-
-{ 
-  "window": [{ "op": "rank", "as": "RANK_BY_ACTUAL" }],
-  "sort": [
-    { "field": "ACTUAL", "order": "descending" },
-    { "field": "ZONE_DESC", "order": "ascending" }  // שובר שוויון אופציונלי
-  ]
+"title": {
+  "text": {
+    "expr": "'מיצוי מעלות – ' + (length(data('dataset')) && isValid(data('dataset')[0]['STAGE_IND_APP']) ? data('dataset')[0]['STAGE_IND_APP'] : 'כל השלבים')"
+  },
+  "align": "center",
+  "font": "Segoe UI",
+  "fontSize": 17,
+  "fontWeight": "bold",
+  "color": "#5D5D67",
+  "dy": 25
 }
-
-
-ב־RIGHT (גם כן בתוך transform) הוסף את אותו בלוק:
-
-{ 
-  "window": [{ "op": "rank", "as": "RANK_BY_ACTUAL" }],
-  "sort": [
-    { "field": "ACTUAL", "order": "descending" },
-    { "field": "ZONE_DESC", "order": "ascending" }
-  ]
-}
-
-2) למיין את ציר ה-Y לפי הדירוג החדש בשני הצדדים
-
-החלף את ה־sort של ה־y בשני הצדדים ל:
-
-"sort": { "field": "RANK_BY_ACTUAL", "order": "ascending" }
-
-
-הערה: אין צורך ב-"op": "sum" בתוך ה־sort של ה-y. השימוש בדירוג (rank) מבטיח סדר אחיד לשני החלקים גם אם יש טרנספורמציות שונות בכל צד.
-
-אם תרצה מינימום שינוי (פחות מומלץ ב-Deneb), אפשר פשוט לשים בשני הצדדים:
-
-"sort": { "field": "ACTUAL", "order": "descending" }
-
-
-אבל פתרון ה-rank הוא הדטרמיניסטי והיציב ביותר.
