@@ -1,123 +1,41 @@
-מה להוסיף/לשנות בקוד שלך
+מעולה — הנה תיקון קצר שמבטיח ששני הצדדים ימיינו לפי ACTUAL בסדר יורד באופן עקבי:
 
-הוסף שני פרמטרים (ליד הפרמטרים הקיימים):
+מה לשנות
+1) להוסיף window שמחשב דירוג לפי ACTUAL בשני הצדדים
 
-{
-  "name": "minTextPctLeft",
-  "value": 0.18
-},
-{
-  "name": "minTextPctRight",
-  "value": 0.18
+ב־LEFT (בתחילת ה־transform, אחרי החישובים הקיימים) הוסף:
+
+{ 
+  "window": [{ "op": "rank", "as": "RANK_BY_ACTUAL" }],
+  "sort": [
+    { "field": "ACTUAL", "order": "descending" },
+    { "field": "ZONE_DESC", "order": "ascending" }  // שובר שוויון אופציונלי
+  ]
 }
 
 
-ב־LEFT (ב־transform) אחרי החישוב של GRID_XMIN_L, הוסף חישוב יחס רוחב העמודה:
+ב־RIGHT (גם כן בתוך transform) הוסף את אותו בלוק:
 
-{ "calculate": "abs(datum.NEG_ACTUAL_2) / abs(datum.GRID_XMIN_L)", "as": "BAR_PCT_LEFT" }
-
-
-ב־RIGHT (ב־transform) אחרי החישוב של GRID_XMAX_R, הוסף:
-
-{ "calculate": "datum.ACTUAL / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT" }
-
-
-החלף את ארבע שכבות הטקסט כך שיוצגו רק אם העמודה רחבה מספיק ותמיד יישבו בתוך העמודה:
-
-LEFT – actual_2 text
-
-{
-  "mark": {
-    "type": "text",
-    "font": "Segoe UI",
-    "fontWeight": "bold",
-    "color": {
-      "expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['AVT2']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"
-    },
-    "align": "left",
-    "xOffset": 3,
-    "yOffset": -6,
-    "size": {"expr": "TextSize"}
-  },
-  "encoding": {
-    "text": {"field": "ACTUAL_2", "format": "#0.0'", "formatType": "pbiFormat"},
-    "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
-  }
+{ 
+  "window": [{ "op": "rank", "as": "RANK_BY_ACTUAL" }],
+  "sort": [
+    { "field": "ACTUAL", "order": "descending" },
+    { "field": "ZONE_DESC", "order": "ascending" }
+  ]
 }
 
+2) למיין את ציר ה-Y לפי הדירוג החדש בשני הצדדים
 
-LEFT – actual_vs_target_2 text
+החלף את ה־sort של ה־y בשני הצדדים ל:
 
-{
-  "mark": {
-    "type": "text",
-    "font": "Segoe UI",
-    "fontWeight": "bold",
-    "color": {
-      "expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['AVT2']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"
-    },
-    "align": "left",
-    "xOffset": 3,
-    "yOffset": 7,
-    "size": {"expr": "TextSize2"}
-  },
-  "encoding": {
-    "text": {"field": "AVT2", "format": "##0.0%'", "formatType": "pbiFormat"},
-    "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
-  }
-}
+"sort": { "field": "RANK_BY_ACTUAL", "order": "ascending" }
 
 
-RIGHT – actual text
+הערה: אין צורך ב-"op": "sum" בתוך ה־sort של ה-y. השימוש בדירוג (rank) מבטיח סדר אחיד לשני החלקים גם אם יש טרנספורמציות שונות בכל צד.
 
-{
-  "description": "actual label",
-  "mark": {
-    "type": "text",
-    "font": "Segoe UI",
-    "fontWeight": "bold",
-    "color": {
-      "expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"
-    },
-    "align": "right",
-    "xOffset": -3,
-    "yOffset": -6,
-    "size": {"expr": "TextSize"}
-  },
-  "encoding": {
-    "text": {"field": "ACTUAL", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-    "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
-  }
-}
+אם תרצה מינימום שינוי (פחות מומלץ ב-Deneb), אפשר פשוט לשים בשני הצדדים:
+
+"sort": { "field": "ACTUAL", "order": "descending" }
 
 
-RIGHT – ACTUAL_vs_TARGET text
-
-{
-  "description": "ACTUAL_vs_TARGET label",
-  "mark": {
-    "type": "text",
-    "font": "Segoe UI",
-    "fontWeight": "bold",
-    "color": {
-      "expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"
-    },
-    "align": "right",
-    "xOffset": -3,
-    "yOffset": 7,
-    "size": {"expr": "TextSize2"}
-  },
-  "encoding": {
-    "text": {"field": "ACTUAL_vs_TARGET", "format": "##0.0%'", "formatType": "pbiFormat"},
-    "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
-  }
-}
-
-
-הערות:
-
-אפשר לכייל את סף ההצגה ע"י שינוי minTextPctLeft/Right (למשל 0.12 יהיה אגרסיבי יותר ויציג טקסט גם בעמודות צרות).
-
-השיטה מבוססת יחס (אחוז מאורך הדומיין), שהיא הדרך האמינה ב־Vega-Lite בלי למדוד את רוחב הטקסט בפיקסלים.
-
-לא נגעתי בטקסט של ה־plan כי ביקשת ספציפית רק actual ו־ACTUAL_vs_TARGET. אם תרצה—אוסיף גם לו gating זהה.
+אבל פתרון ה-rank הוא הדטרמיניסטי והיציב ביותר.
