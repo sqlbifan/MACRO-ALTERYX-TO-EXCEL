@@ -21,7 +21,15 @@
   {
     "name": "TextSize2",
     "value": 13
-  }
+  },
+  {
+  "name": "minTextPctLeft",
+  "value": 0.18
+},
+{
+  "name": "minTextPctRight",
+  "value": 0.18
+}
   ],
   "data": {"name": "dataset"},
   "hconcat": [
@@ -63,12 +71,41 @@
                   
         {
           // plan_2 bar
-          "mark": {"type": "bar", "color": "#F4F2F2", 
+          "mark": {"type": "bar", 
+          "color": {"expr": "datum['AVT2']<0? '#F87460': '#F4F2F2'"},
           "height":{"expr": "barheight"},
           "stroke": null
           },
           "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null},
+            "tooltip": [
+              {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": "נציגות"
+              },                 
+              {
+              "field": "plan_2",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+              },
+              {
+              "field": "ACTUAL_2",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+              },
+              {
+              "field": "ACTUAL_vs_TARGET_2",
+              "type": "quantitative",
+              "format": "#,#0.0%'",          
+              "formatType": "pbiFormat",
+              "title": "ציון"
+              }
+            ]
           }
         },
         
@@ -85,29 +122,29 @@
               "field": "ZONE_DESC",
               "type": "nominal",
               "title": "נציגות"
-            },                 
-            {
+              },                 
+              {
               "field": "plan_2",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד"
-            },
-            {
+              },
+              {
               "field": "ACTUAL_2",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
-            },
-            {
+              },
+              {
               "field": "ACTUAL_vs_TARGET_2",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון"
-            }
-          ]
+              }
+            ]
           }
         },
         {
@@ -219,7 +256,8 @@
           ]
         },
         {"calculate": "datum.ACTUAL_vs_TARGET", "as": "AVT"},
-        { "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R" }
+        { "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R" },
+        { "calculate": "datum.ACTUAL / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT" }
       ],
       "width": "container",
       "height": "container",
@@ -235,7 +273,37 @@
             "point": {"yOffset": -8, "size": 0.003, "color": "#E6E6E6", "height": 30},
             "stroke": null
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null},
+            "tooltip": [
+              {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": "נציגות"
+              },                 
+              {
+              "field": "plan",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+              },
+              {
+              "field": "ACTUAL",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+              },
+              {
+              "field": "ACTUAL_vs_TARGET",
+              "type": "quantitative",
+              "format": "#,#0.0%'",          
+              "formatType": "pbiFormat",
+              "title": "ציון"
+              }
+            ]
+          
+          }
         },
         {
           // actual bar
@@ -251,29 +319,29 @@
               "field": "ZONE_DESC",
               "type": "nominal",
               "title": "נציגות"
-            },                 
-            {
+              },                 
+              {
               "field": "plan",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד"
-            },
-            {
+              },
+              {
               "field": "ACTUAL",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
-            },
-            {
+              },
+              {
               "field": "ACTUAL_vs_TARGET",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון"
-            }
-          ]
+              }
+            ]
           
           }
           
@@ -295,7 +363,36 @@
             },
             "stroke": "#FFFFFF00"
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null},
+          "tooltip": [
+              {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": "נציגות"
+              },                 
+              {
+              "field": "plan",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+              },
+              {
+              "field": "ACTUAL",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+              },
+              {
+              "field": "ACTUAL_vs_TARGET",
+              "type": "quantitative",
+              "format": "#,#0.0%'",          
+              "formatType": "pbiFormat",
+              "title": "ציון"
+              }
+            ]
+          }
         },
          {
           //plan mark_2
@@ -323,10 +420,12 @@
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            "color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
-            //"color": "#70BBFF",
-            "align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
-            "xOffset": {"expr": "datum['ACTUAL'] < 10000000 ? 3 : -3"},
+            //"color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            //"align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
+            "align": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? 'right' : 'left'"},
+            //"xOffset": {"expr": "datum['ACTUAL'] < 10000000 ? 3 : -3"},
+            "xOffset": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? -3 : 3"},
             "yOffset": -6,
             "size": {"expr": "TextSize"} 
           },
@@ -350,7 +449,35 @@
           },
           "encoding": {
             "text": {"field": "plan", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-            "x": {"field": "plan", "type": "quantitative", "axis": null}
+            "x": {"field": "plan", "type": "quantitative", "axis": null},
+            "tooltip": [
+              {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": "נציגות"
+              },                 
+              {
+              "field": "plan",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "יעד"
+              },
+              {
+              "field": "ACTUAL",
+              "type": "quantitative",
+              "format": "#,##0,,.00M'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+              },
+              {
+              "field": "ACTUAL_vs_TARGET",
+              "type": "quantitative",
+              "format": "#,#0.0%'",          
+              "formatType": "pbiFormat",
+              "title": "ציון"
+              }
+            ]
           }
         },
         {
@@ -360,10 +487,13 @@
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            "align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
-            "color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
+            //"color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            //"align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
+            "align": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? 'right' : 'left'"},
+            //"xOffset": {"expr": "datum['ACTUAL'] < 10000000 ? 3 : -3"},
+            "xOffset": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? -3 : 3"},
             "yOffset": 7,
-            "xOffset": {"expr": "datum['ACTUAL'] < 10000000? 3: -3"},
             "size": {"expr": "TextSize2"} 
           },
           "encoding": {
