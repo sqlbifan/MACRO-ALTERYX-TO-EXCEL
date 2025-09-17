@@ -1,86 +1,6 @@
-//CONFIG
-{
-  "autosize": {
-    "type": "fit",
-    "contains": "padding"
-  },
-  "padding": {
-      "left": 50, 
-      "top": 5, 
-      "right": 20, 
-      "bottom": 5
-  },
-  "view": {"stroke": "transparent"},
-  "font": "Segoe UI",
-  "arc": {},
-  "area": {
-    "line": true,
-    "opacity": 0.6
-  },
-  "bar": {},
-  "line": {
-    "strokeWidth": 3,
-    "strokeCap": "round",
-    "strokeJoin": "round"
-  },
-  "path": {},
-  "point": {"filled": true, "size": 75},
-  "rect": {},
-  "shape": {},
-  "symbol": {
-    "strokeWidth": 1.5,
-    "size": 50
-  },
-  "text": {
-    "font": "Segoe UI",
-    "fontSize": 12,
-    "fill": "#605E5C"
-  },
-  "axis": {
-    "ticks": false,
-    "grid": false,
-    "domain": false,
-    "labelColor": "#605E5C",
-    "labelFontSize": 12,
-    "titleFont": "wf_standard-font, helvetica, arial, sans-serif",
-    "titleColor": "#252423",
-    "titleFontSize": 16,
-    "titleFontWeight": "normal"
-  },
-  "axisQuantitative": {
-    "tickCount": 3,
-    "grid": true,
-    "gridColor": "#C8C6C4",
-    "gridDash": [1, 5],
-    "labelFlush": false
-  },
-  "axisBand": {"tickExtra": true},
-  "axisX": {"labelPadding": 5},
-  "axisY": {"labelPadding": 10},
-  "header": {
-    "titleFont": "wf_standard-font, helvetica, arial, sans-serif",
-    "titleFontSize": 16,
-    "titleColor": "#252423",
-    "labelFont": "Segoe UI",
-    "labelFontSize": 13.333333333333332,
-    "labelColor": "#605E5C"
-  },
-  "legend": {
-    "titleFont": "Segoe UI",
-    "titleFontWeight": "bold",
-    "titleColor": "#605E5C",
-    "labelFont": "Segoe UI",
-    "labelFontSize": 13.333333333333332,
-    "labelColor": "#605E5C",
-    "symbolType": "circle",
-    "symbolSize": 75
-  }
-}
-
-//specification
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "spacing":-5 ,
+  "spacing":2 ,
   "autosize": {"type": "fit-y", "contains": "padding"},
   "config": {
     "title": {
@@ -89,11 +9,31 @@
       "fontWeight": "bold"
     }
   },
+  "params": [{
+    "name": "barheight",
+    "value": 30
+    //"bind": {"input": "range", "min": 1, "max": 100, "step": 1} // adds a slider
+  },
+  {
+    "name": "TextSize",
+    "value": 15
+  },
+  {
+    "name": "TextSize2",
+    "value": 13
+  }
+  ],
   "data": {"name": "dataset"},
   "hconcat": [
     /* --------- LEFT (mirror, responsive, no Y axis) --------- */
     {
-      "title": {"text": "מרווח", "anchor": "middle"},
+      "title": {"text": "מרווח", "anchor": "middle",
+      "color": "#B3B3B3",
+      "font": "Segoe UI",
+      "fontWeight": "bold",
+      "subtitle":null
+      
+      },
       "transform": [
         {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
         {"calculate": "-datum.plan_2", "as": "NEG_plan_2"},
@@ -110,21 +50,22 @@
       "height": "container",
       "layer": [
         {
-      "name": "gridlines_left",
-      "mark": { "type": "rule", "color": "#E6E6E6", "size": 2, "opacity": 1, "zindex": 0, "yOffset": 23 },
-      "encoding": {
-        "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
-        "x": { "value":-100},
-        "x2": { "value": 0 }
-      }
-      },
+          // grid line y axis
+          "name": "gridlines_left", 
+          "mark": { "type": "rule", "color": "#E6E6E6", "size": 2, "opacity": 1, "zindex": 0, "yOffset": 20 },
+          "encoding": {
+            "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "x": { "value":-100},
+            "x2": { "value": 0 }
+          }
+        },
                   
         {
           // plan_2 bar
-          "mark": {"type": "bar", "color": "#E6E6E6", 
-          "height": 30, 
-          //"height":{"expr": "barheight"},
-          "stroke": "#e3e3e3"
+          "mark": {"type": "bar", 
+          "color": {"expr": "datum['AVT2']<0? '#F87460': '#F4F2F2'"},
+          "height":{"expr": "barheight"},
+          "stroke": null
           },
           "encoding": {
             "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
@@ -135,8 +76,7 @@
           // actual_2_bar
           "mark": {"type": "bar",
             "color": {"expr": "datum['AVT2']>1? '#15B29E': '#094780'"},
-            
-           "height": 35
+           "height":{"expr": "barheight"} 
            },
           "encoding": {
             "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
@@ -148,12 +88,11 @@
             "type": "rule",
             "color": "#cccccc",            
             "point": {
-              "shape": "M0 0h1v15h-2v-15z",
-              "yOffset": -13,
-              "size": 12,
-              "color": {"expr": "datum['AVT2']>1? '#FFFFFF00': '#808080'"},
-              "opacity": {"expr": "datum['AVT2']>1? 0.5: 1"}
-              //,"height": 10
+              "shape": "M0 0h1v15h-1z",
+              "yOffset": -16,
+              "size": 17,
+              "color": {"expr": "datum['AVT2']>1? '#FFFFFF00': '#808080'"}
+              //"opacity": {"expr": "datum['AVT2']>1? 0.5: 1"}
             },
             "stroke": "#FFFFFF00"
           },
@@ -161,25 +100,7 @@
             "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
           }
         },
-        {
-          // TARGET MARK 2
-          "mark": {
-            "type": "rule",
-            "color": "#cccccc",            
-            "point": {
-              "shape": "M16 160L160 304L304 160Z",
-              "yOffset": -25,
-              "size": 0.005,
-              "color": {"expr": "datum['AVT2']>1? '#808080': '#FFFFFF00'"}, 
-              "opacity": {"expr": "datum['AVT2']>1? 0.5: 1"}
-              //,"height": 10
-            },
-            "stroke": "#FFFFFF00"
-          },
-          "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
-          }
-        },
+      
         {
           //actual_2 text
           "mark": {
@@ -189,8 +110,8 @@
             "color": {"expr": "datum['AVT2']>1? '#FFFFFF': '#70BBFF'"},
             "align": "left",
             "xOffset": {"expr": "abs(datum['NEG_ACTUAL_2']) < 70 ?3 : 40"},
-            "yOffset": -4,
-            "size": 12
+            "yOffset": -6,
+            "size": {"expr": "TextSize"} 
           },
           "encoding": {
             "text": {"field": "ACTUAL_2", "format": "#0.0'", "formatType": "pbiFormat"},
@@ -203,11 +124,11 @@
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            "color": {"expr": "datum['AVT2']>1? '#95D59C': '#808080'"},
+            "color": {"expr": "datum['AVT2']>1? '#FFFFFF00': '#808080'"},
             "align": "right",
-            "yOffset": {"expr": "datum['AVT2']<1 ? 0 : -16"},
+            "yOffset": {"expr": "datum['AVT2']<1 ? 0 : -18"},
             "xOffset": -3,
-            "size": 9
+            "size": {"expr": "TextSize2"} 
           },
           "encoding": {
             "text": {"field": "plan_2", "format": "#0.0'", "formatType": "pbiFormat"},
@@ -222,9 +143,9 @@
             "fontWeight": "bold",
             "align": "left",
             "color": {"expr": "datum['AVT2']>0? datum['AVT2']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
-            "yOffset": 6,
+            "yOffset": 7,
             "xOffset": {"expr": "abs(datum['NEG_ACTUAL_2']) < 70? 3: 35"},
-            "size": 9
+            "size": {"expr": "TextSize2"} 
           },
           "encoding": {
             "text": {"field": "AVT2", "format": "##0.0%'", "formatType": "pbiFormat"},
@@ -241,13 +162,17 @@
           "labelFont": "Segoe UI",
           "labelFontSize": 15,
           "labelFontWeight": "normal",
-          "labelPadding": 25,
+          "labelPadding": 30,
+          "labelBaseline": "middle" ,
+          "labelAlign": "right",
           "grid": true,
           "gridColor": "#E6E6E6",
           "gridWidth": 2,
           "tickBand": "extent",
+          "tickSize": 35,
+          "tickColor": "#FFFFFF00",
           "domain": false,
-          "ticks": false
+          "ticks": true
           },
           "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"}
         }
@@ -255,7 +180,11 @@
     },
     /* --------- RIGHT (responsive, keeps Y axis) --------- */
     {
-      "title": {"text": "ביצוע", "anchor": "middle"},
+      "title": {"text": "ביצוע", "anchor": "middle",
+      "color": "#B3B3B3",
+      "font": "Segoe UI",
+      "fontWeight": "bold",
+      "subtitle":null},
       "transform": [
         {
           "joinaggregate": [
@@ -270,37 +199,39 @@
       "layer": [
        
         {
+          // plan bar
           "description": "target bar",
           "mark": {
             "type": "bar",
-            "color": "#E6E6E6",
-            "height": 35,
+            "color": "#F4F2F2",
+            "height":{"expr": "barheight"},
             "point": {"yOffset": -8, "size": 0.003, "color": "#E6E6E6", "height": 30},
-            "stroke": "#e3e3e3"
+            "stroke": null
           },
           "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
         },
         {
+          // actual bar
           "description": "actual bar",
           "mark": {"type": "bar", 
           "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#15B29E': '#094780'"},
-          "height": 35
+          "height":{"expr": "barheight"}
           
           },
           "encoding": {"x": {"field": "ACTUAL", "type": "quantitative", "axis": null}}
         },
         {
+          // plan mark
           "description": "target mark",
           "mark": {
             "type": "rule",
             "color": "#cccccc",
-            "height": 16,
             "point": {
-              "shape": "M0 0h1v15h-2v-15z",
-              "yOffset": -13,
-              "size": 12,
+              "shape": "M0 0h1v15h-1z",
+              "yOffset": -16,
+              "size": 17,
               "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#FFFFFF00': '#808080'"},
-              "opacity": {"expr": "datum['ACTUAL_vs_TARGET']>1? 0.5: 1"},
+              //"opacity": {"expr": "datum['ACTUAL_vs_TARGET']>1? 0.5: 1"},
               "height": 30
             },
             "stroke": "#FFFFFF00"
@@ -308,6 +239,7 @@
           "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
         },
          {
+          //plan mark_2
           "description": "target mark2",
           "mark": {
             "type": "rule",
@@ -315,7 +247,7 @@
             "height": 16,
             "point": {
               "shape": "M16 160L160 304L304 160Z",
-              "yOffset": -30,
+              "yOffset": -25,
               "xOffset": -8,
               "size": 0.005,
               "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#FFFFFF00'"},             
@@ -326,6 +258,7 @@
           "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
         },
         {
+          // actual text
           "description": "actual label",
           "mark": {
             "type": "text",
@@ -335,8 +268,8 @@
             //"color": "#70BBFF",
             "align": {"expr": "datum['ACTUAL'] < 50000000 ? 'left' : 'right'"},
             "xOffset": {"expr": "datum['ACTUAL'] < 50000000 ? 3 : -3"},
-            "yOffset": -4,
-            "size": 12
+            "yOffset": -6,
+            "size": {"expr": "TextSize"} 
           },
           "encoding": {
             "text": {"field": "ACTUAL", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
@@ -344,6 +277,7 @@
           }
         },
         {
+          // plan text
           "description": "target label",
           "mark": {
             "type": "text",
@@ -351,9 +285,9 @@
             "fontWeight": "bold",
             "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#808080'"},
             "align": "left",
-            "yOffset": {"expr": "datum['ACTUAL_vs_TARGET']<1 ? 0 : -22"},
+            "yOffset": {"expr": "datum['ACTUAL_vs_TARGET']<1 ? 0 : -18"},
             "xOffset": 3,
-            "size": 9
+            "size": {"expr": "TextSize2"} 
           },
           "encoding": {
             "text": {"field": "plan", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
@@ -361,6 +295,7 @@
           }
         },
         {
+          // ACTUAL_vs_TARGET text
           "description": "ACTUAL_vs_TARGET label",
           "mark": {
             "type": "text",
@@ -368,9 +303,9 @@
             "fontWeight": "bold",
             "align": {"expr": "datum['ACTUAL'] < 50000000 ? 'left' : 'right'"},
             "color": {"expr": "datum['ACTUAL_vs_TARGET']>0? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
-            "yOffset": 6,
+            "yOffset": 7,
             "xOffset": {"expr": "datum['ACTUAL'] < 50000000? 3: -3"},
-            "size": 9
+            "size": {"expr": "TextSize2"} 
           },
           "encoding": {
             "text": {"field": "ACTUAL_vs_TARGET", "format": "##0.0%'", "formatType": "pbiFormat"},
