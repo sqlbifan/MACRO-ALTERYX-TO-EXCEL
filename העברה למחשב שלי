@@ -1,11 +1,35 @@
-"title": {
-  "text": {
-    "expr": "'מיצוי מעלות – ' + (length(data('dataset')) && isValid(data('dataset')[0]['STAGE_IND_APP']) ? data('dataset')[0]['STAGE_IND_APP'] : 'כל השלבים')"
-  },
-  "align": "center",
-  "font": "Segoe UI",
-  "fontSize": 17,
-  "fontWeight": "bold",
-  "color": "#5D5D67",
-  "dy": 25
+"transform": [
+  {
+    "joinaggregate": [
+      { "op": "sum", "field": "ACTUAL", "as": "__SortACTUAL" }
+    ],
+    "groupby": ["ZONE_DESC"]
+  }
+],
+
+"encoding": {
+  "y": {
+    "field": "ZONE_DESC",
+    "type": "nominal",
+    "title": null,
+    "axis": { ... },
+    "sort": { "field": "__SortACTUAL", "order": "descending" }
+  }
 }
+
+"encoding": {
+  "y": {
+    "field": "ZONE_DESC",
+    "type": "nominal",
+    "title": null,
+    "axis": { ... },
+    "sort": { "field": "__SortACTUAL", "order": "descending" }
+  }
+}
+
+{ "filter": "isValid(datum.ACTUAL)" }
+
+
+{ "op": "max", "field": "ACTUAL", "as": "__SortACTUAL" }
+
+
