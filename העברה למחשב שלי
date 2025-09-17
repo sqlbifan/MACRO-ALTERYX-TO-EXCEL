@@ -52,3 +52,89 @@
           ]
         },
         {
+          "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2",
+          "as": "GRID_XMIN_L"
+        }
+      ],
+      "width": "container",
+      "height": "container",
+      "layer": [
+        /* ... כל השכבות שלך ... */
+      ],
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "title": null,
+          "sort": {"field": "sort_order"},   /* כאן שינוי */
+          "axis": {
+            "labelFont": "Segoe UI",
+            "labelFontSize": 15,
+            "labelFontWeight": "normal",
+            "labelPadding": 30,
+            "labelBaseline": "middle",
+            "labelAlign": "right",
+            "grid": true,
+            "gridColor": "#E6E6E6",
+            "gridWidth": 2,
+            "tickBand": "extent",
+            "tickSize": 35,
+            "tickColor": "#FFFFFF00",
+            "domain": false,
+            "ticks": true
+          }
+        }
+      }
+    },
+
+    /* --------- RIGHT --------- */
+    {
+      "title": {
+        "text": "ביצוע",
+        "anchor": "middle",
+        "color": "#B3B3B3",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "subtitle": null
+      },
+      "transform": [
+        {
+          "joinaggregate": [
+            {"op": "max", "field": "ACTUAL", "as": "MaxActual"},
+            {"op": "max", "field": "plan", "as": "Maxplan"}
+          ]
+        },
+        {
+          "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan",
+          "as": "GRID_XMAX_R"
+        }
+      ],
+      "width": "container",
+      "height": "container",
+      "layer": [
+        /* ... כל השכבות שלך ... */
+      ],
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "title": null,
+          "sort": {"field": "sort_order"},   /* כאן שינוי */
+          "axis": {
+            "grid": true,
+            "gridColor": "#EDEDED",
+            "gridWidth": 2,
+            "labels": false,
+            "domain": false,
+            "ticks": false,
+            "title": null,
+            "tickBand": "extent"
+          }
+        }
+      }
+    }
+  ],
+
+  "resolve": {"scale": {"y": "shared", "x": "independent"}},
+  "view": {"stroke": null}
+}
