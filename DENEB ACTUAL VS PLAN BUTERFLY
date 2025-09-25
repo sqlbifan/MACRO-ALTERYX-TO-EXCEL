@@ -1,38 +1,39 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "spacing":2 ,
+  "spacing": 2,
   "autosize": {"type": "fit-y", "contains": "padding"},
   "config": {
-    "title": {
-      "font": "Segoe UI",
-      "fontSize": 16,
-      "fontWeight": "bold"
+    "title": {"font": "Segoe UI","fontSize": 16,"fontWeight": "bold"}
+  },
+  "params": [
+    {
+      "name": "barheight",
+      "value": 30
+    },
+    {
+      "name": "TextSize",
+      "value": 15
+    },
+    {
+      "name": "TextSize2",
+      "value": 13
+    },
+    {
+      "name": "selZone",
+      "select": {"type": "point","fields": ["ZONE_DESC"],"on": "click","clear": "dblclick"}
     }
-  },
-  "params": [{
-    "name": "barheight",
-    "value": 30
-    //"bind": {"input": "range", "min": 1, "max": 100, "step": 1} // adds a slider
-  },
-  {
-    "name": "TextSize",
-    "value": 15
-  },
-  {
-    "name": "TextSize2",
-    "value": 13
-  }
   ],
   "data": {"name": "dataset"},
   "hconcat": [
     /* --------- LEFT (mirror, responsive, no Y axis) --------- */
     {
-      "title": {"text": "מרווח", "anchor": "middle",
-      "color": "#B3B3B3",
-      "font": "Segoe UI",
-      "fontWeight": "bold",
-      "subtitle":null
-      
+      "title": {
+        "text": "מרווח",
+        "anchor": "middle",
+        "color": "#B3B3B3",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "subtitle": null
       },
       "transform": [
         {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
@@ -44,82 +45,167 @@
             {"op": "max", "field": "plan_2", "as": "MaxPlan2"}
           ]
         },
-        { "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2", "as": "GRID_XMIN_L" }
+        {"calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2", "as": "GRID_XMIN_L"}
       ],
       "width": "container",
       "height": "container",
       "layer": [
+        /* --- (1) תוויות Y לחיצות במקום לייבלי הציר --- */
         {
-          // grid line y axis
-          "name": "gridlines_left", 
-          "mark": { "type": "rule", "color": "#E6E6E6", "size": 2, "opacity": 1, "zindex": 0, "yOffset": 20 },
-          "encoding": {
-            "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
-            "x": { "value":-100},
-            "x2": { "value": 0 }
-          }
-        },
-                  
-        {
-          // plan_2 bar
-          "mark": {"type": "bar", 
-          "color": {"expr": "datum['AVT2']<0? '#F87460': '#F4F2F2'"},
-          "height":{"expr": "barheight"},
-          "stroke": null
+          "name": "y_labels_clickable",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "normal",
+            "align": "left",
+            "baseline": "middle",
+            "dx": 6,
+            "cursor": "pointer"
           },
           "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "y": {"field": "ZONE_DESC","type": "nominal","bandPosition": 0.5},
+            "x": {"field": "GRID_XMIN_L","type": "quantitative"},
+            "text": {"field": "ZONE_DESC"},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            },
+            "tooltip": [{"field": "ZONE_DESC","type": "nominal","title": "קטגוריה"}]
           }
         },
-        
+        /* --- (2) HITBOX שקוף לכל שורה --- */
         {
-          // actual_2_bar
-          "mark": {"type": "bar",
-            "color": {"expr": "datum['AVT2']>1? '#15B29E': '#094780'"},
-           "height":{"expr": "barheight"} 
-           },
+          "name": "row_hitbox_left",
+          "mark": {"type": "rect","opacity": 0,"cursor": "pointer"},
           "encoding": {
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
+            "y": {"field": "ZONE_DESC","type": "nominal"},
+            "x": {"field": "GRID_XMIN_L","type": "quantitative"},
+            "x2": {"value": 0},
+            "tooltip": [{"field": "ZONE_DESC","type": "nominal","title": "קטגוריה"}]
           }
         },
+
+        /* --- grid line y axis --- */
         {
-          // TARGET MARK
+          "name": "gridlines_left",
+          "mark": {"type": "rule","color": "#E6E6E6","size": 2,"opacity": 1,"zindex": 0,"yOffset": 20},
+          "encoding": {
+            "y": {"field": "ZONE_DESC","type": "nominal","bandPosition": 0.5},
+            "x": {"value": -100},
+            "x2": {"value": 0},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
+        },
+
+        /* --- plan_2 bar --- */
+        {
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['AVT2']<0? '#F87460': '#F4F2F2'"},
+            "height": {"expr": "barheight"},
+            "stroke": "#000000",
+            "strokeOpacity": {
+              "condition": {"param": "selZone","value": 0.35},
+              "value": 0
+            }
+          },
+          "encoding": {
+            "x": {"field": "NEG_plan_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
+        },
+
+        /* --- actual_2 bar --- */
+        {
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['AVT2']>1? '#15B29E': '#094780'"},
+            "height": {"expr": "barheight"},
+            "stroke": "#000000",
+            "strokeOpacity": {
+              "condition": {"param": "selZone","value": 0.35},
+              "value": 0
+            }
+          },
+          "encoding": {
+            "x": {"field": "NEG_ACTUAL_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
+        },
+
+        /* --- TARGET MARK --- */
+        {
           "mark": {
             "type": "rule",
-            "color": "#cccccc",            
+            "color": "#cccccc",
             "point": {
               "shape": "M0 0h1v15h-1z",
               "yOffset": -16,
               "size": 17,
               "color": {"expr": "datum['AVT2']>1? '#FFFFFF00': '#808080'"}
-              //"opacity": {"expr": "datum['AVT2']>1? 0.5: 1"}
             },
             "stroke": "#FFFFFF00"
           },
           "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "x": {"field": "NEG_plan_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         },
-      
+
+        /* --- actual_2 text --- */
         {
-          //actual_2 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
             "color": {"expr": "datum['AVT2']>1? '#FFFFFF': '#70BBFF'"},
             "align": "left",
-            "xOffset": {"expr": "abs(datum['NEG_ACTUAL_2']) < 70 ?3 : 40"},
+            "xOffset": {"expr": "abs(datum['NEG_ACTUAL_2']) < 70 ? 3 : 40"},
             "yOffset": -6,
-            "size": {"expr": "TextSize"} 
+            "size": {"expr": "TextSize"}
           },
           "encoding": {
-            "text": {"field": "ACTUAL_2", "format": "#0.0'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL_2","format": "#0.0'","formatType": "pbiFormat"},
+            "x": {"field": "NEG_ACTUAL_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         },
+
+        /* --- plan_2 text --- */
         {
-          //plan_2 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
@@ -128,15 +214,23 @@
             "align": "right",
             "yOffset": {"expr": "datum['AVT2']<1 ? 0 : -18"},
             "xOffset": -3,
-            "size": {"expr": "TextSize2"} 
+            "size": {"expr": "TextSize2"}
           },
           "encoding": {
-            "text": {"field": "plan_2", "format": "#0.0'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "text": {"field": "plan_2","format": "#0.0'","formatType": "pbiFormat"},
+            "x": {"field": "NEG_plan_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         },
+
+        /* --- actual_vs_target_2 text --- */
         {
-          // actual_vs_target_2 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
@@ -145,11 +239,18 @@
             "color": {"expr": "datum['AVT2']>0? datum['AVT2']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
             "yOffset": 7,
             "xOffset": {"expr": "abs(datum['NEG_ACTUAL_2']) < 70? 3: 35"},
-            "size": {"expr": "TextSize2"} 
+            "size": {"expr": "TextSize2"}
           },
           "encoding": {
-            "text": {"field": "AVT2", "format": "##0.0%'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
+            "text": {"field": "AVT2","format": "##0.0%'","formatType": "pbiFormat"},
+            "x": {"field": "NEG_ACTUAL_2","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         }
       ],
@@ -159,32 +260,37 @@
           "type": "nominal",
           "title": null,
           "axis": {
-          "labelFont": "Segoe UI",
-          "labelFontSize": 15,
-          "labelFontWeight": "normal",
-          "labelPadding": 30,
-          "labelBaseline": "middle" ,
-          "labelAlign": "right",
-          "grid": true,
-          "gridColor": "#E6E6E6",
-          "gridWidth": 2,
-          "tickBand": "extent",
-          "tickSize": 35,
-          "tickColor": "#FFFFFF00",
-          "domain": false,
-          "ticks": true
+            "labels": false,               /* כיבוי לייבלי ציר – אנחנו מציירים תוויות משלנו */
+            "labelFont": "Segoe UI",
+            "labelFontSize": 15,
+            "labelFontWeight": "normal",
+            "labelPadding": 30,
+            "labelBaseline": "middle",
+            "labelAlign": "right",
+            "grid": true,
+            "gridColor": "#E6E6E6",
+            "gridWidth": 2,
+            "tickBand": "extent",
+            "tickSize": 35,
+            "tickColor": "#FFFFFF00",
+            "domain": false,
+            "ticks": true
           },
           "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"}
         }
       }
     },
+
     /* --------- RIGHT (responsive, keeps Y axis) --------- */
     {
-      "title": {"text": "ביצוע", "anchor": "middle",
-      "color": "#B3B3B3",
-      "font": "Segoe UI",
-      "fontWeight": "bold",
-      "subtitle":null},
+      "title": {
+        "text": "ביצוע",
+        "anchor": "middle",
+        "color": "#B3B3B3",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "subtitle": null
+      },
       "transform": [
         {
           "joinaggregate": [
@@ -192,36 +298,75 @@
             {"op": "max", "field": "plan", "as": "Maxplan"}
           ]
         },
-        { "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R" }
+        {"calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R"}
       ],
       "width": "container",
       "height": "container",
       "layer": [
-       
+        /* --- HITBOX ימני לכל שורה (נוח לקליק בכל האזור) --- */
         {
-          // plan bar
+          "name": "row_hitbox_right",
+          "mark": {"type": "rect","opacity": 0,"cursor": "pointer"},
+          "encoding": {
+            "y": {"field": "ZONE_DESC","type": "nominal"},
+            "x": {"value": 0},
+            "x2": {"field": "GRID_XMAX_R","type": "quantitative"},
+            "tooltip": [{"field": "ZONE_DESC","type": "nominal","title": "קטגוריה"}]
+          }
+        },
+
+        /* --- plan bar --- */
+        {
           "description": "target bar",
           "mark": {
             "type": "bar",
             "color": "#F4F2F2",
-            "height":{"expr": "barheight"},
-            "point": {"yOffset": -8, "size": 0.003, "color": "#E6E6E6", "height": 30},
-            "stroke": null
+            "height": {"expr": "barheight"},
+            "stroke": "#000000",
+            "strokeOpacity": {
+              "condition": {"param": "selZone","value": 0.35},
+              "value": 0
+            }
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {
+            "x": {"field": "plan","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
         },
+
+        /* --- actual bar --- */
         {
-          // actual bar
           "description": "actual bar",
-          "mark": {"type": "bar", 
-          "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#15B29E': '#094780'"},
-          "height":{"expr": "barheight"}
-          
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#15B29E': '#094780'"},
+            "height": {"expr": "barheight"},
+            "stroke": "#000000",
+            "strokeOpacity": {
+              "condition": {"param": "selZone","value": 0.35},
+              "value": 0
+            }
           },
-          "encoding": {"x": {"field": "ACTUAL", "type": "quantitative", "axis": null}}
+          "encoding": {
+            "x": {"field": "ACTUAL","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
         },
+
+        /* --- plan mark --- */
         {
-          // plan mark
           "description": "target mark",
           "mark": {
             "type": "rule",
@@ -231,15 +376,24 @@
               "yOffset": -16,
               "size": 17,
               "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#FFFFFF00': '#808080'"},
-              //"opacity": {"expr": "datum['ACTUAL_vs_TARGET']>1? 0.5: 1"},
               "height": 30
             },
             "stroke": "#FFFFFF00"
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {
+            "x": {"field": "plan","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
         },
-         {
-          //plan mark_2
+
+        /* --- plan mark_2 --- */
+        {
           "description": "target mark2",
           "mark": {
             "type": "rule",
@@ -250,34 +404,51 @@
               "yOffset": -25,
               "xOffset": -8,
               "size": 0.005,
-              "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#FFFFFF00'"},             
+              "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#FFFFFF00'"},
               "height": 30
             },
             "stroke": "#FFFFFF00"
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {
+            "x": {"field": "plan","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
+          }
         },
+
+        /* --- actual text --- */
         {
-          // actual text
           "description": "actual label",
           "mark": {
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
             "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF'"},
-            //"color": "#70BBFF",
             "align": {"expr": "datum['ACTUAL'] < 50000000 ? 'left' : 'right'"},
             "xOffset": {"expr": "datum['ACTUAL'] < 50000000 ? 3 : -3"},
             "yOffset": -6,
-            "size": {"expr": "TextSize"} 
+            "size": {"expr": "TextSize"}
           },
           "encoding": {
-            "text": {"field": "ACTUAL", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-            "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL","format": "#,##0,,.0M'","formatType": "pbiFormat"},
+            "x": {"field": "ACTUAL","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         },
+
+        /* --- plan text --- */
         {
-          // plan text
           "description": "target label",
           "mark": {
             "type": "text",
@@ -287,15 +458,23 @@
             "align": "left",
             "yOffset": {"expr": "datum['ACTUAL_vs_TARGET']<1 ? 0 : -18"},
             "xOffset": 3,
-            "size": {"expr": "TextSize2"} 
+            "size": {"expr": "TextSize2"}
           },
           "encoding": {
-            "text": {"field": "plan", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-            "x": {"field": "plan", "type": "quantitative", "axis": null}
+            "text": {"field": "plan","format": "#,##0,,.0M'","formatType": "pbiFormat"},
+            "x": {"field": "plan","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         },
+
+        /* --- ACTUAL_vs_TARGET text --- */
         {
-          // ACTUAL_vs_TARGET text
           "description": "ACTUAL_vs_TARGET label",
           "mark": {
             "type": "text",
@@ -305,11 +484,18 @@
             "color": {"expr": "datum['ACTUAL_vs_TARGET']>0? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
             "yOffset": 7,
             "xOffset": {"expr": "datum['ACTUAL'] < 50000000? 3: -3"},
-            "size": {"expr": "TextSize2"} 
+            "size": {"expr": "TextSize2"}
           },
           "encoding": {
-            "text": {"field": "ACTUAL_vs_TARGET", "format": "##0.0%'", "formatType": "pbiFormat"},
-            "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL_vs_TARGET","format": "##0.0%'","formatType": "pbiFormat"},
+            "x": {"field": "ACTUAL","type": "quantitative","axis": null},
+            "opacity": {
+              "condition": [
+                {"param": "selZone","empty": true,"value": 1},
+                {"param": "selZone","value": 1}
+              ],
+              "value": 0.25
+            }
           }
         }
       ],
@@ -319,15 +505,15 @@
           "type": "nominal",
           "title": null,
           "axis": {
-          "grid": true,
-          "gridColor": "#EDEDED",
-          "gridWidth": 2,
-          "labels": false,
-          "domain": false,
-          "ticks": false,
-          "title": null,
-          "tickBand": "extent"
-        },
+            "grid": true,
+            "gridColor": "#EDEDED",
+            "gridWidth": 2,
+            "labels": false,
+            "domain": false,
+            "ticks": false,
+            "title": null,
+            "tickBand": "extent"
+          },
           "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"}
         }
       }
