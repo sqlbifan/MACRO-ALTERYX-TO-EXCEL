@@ -1,0 +1,243 @@
+{
+  "data": {
+    "name": "dataset"
+    
+  },
+  "width": "container",
+  "height": "container",
+  "padding":{"left": 5, "top": 0, "right": 5, "bottom": 0},
+  
+  "layer": [
+    {
+      
+      "description": "KPI TITLE",
+      "mark": {
+        "type": "text",
+        "align": "center",
+        "font": "Century Gothic, Segoe UI",
+        "color": "#808080",
+        "fontWeight": "normal",
+        "fontSize": 17,
+        "xOffset": 0,
+        "yOffset":-50
+        },
+        "encoding": {
+          "text": {
+          "field": "ZONE_OR_BRANCH"
+        },
+       
+        "y": {
+         "value": 0
+            }
+      }      
+    },
+    {  
+  
+      "description": "CURRENT_number",
+      "mark": {
+        "type": "text",
+        "font": "Century Gothic, Segoe UI",
+        //"color": "#070762",
+       // "size": 37,
+        "fontWeight": "normal",
+        //"fontStyle": "italic",
+
+        "xOffset": 0,
+        "yOffset": -10
+      },
+      "encoding": {
+        "text": {
+          "field": "APP_SFID_DCOUNT_CURRENT_ALL_STATUS%",
+          "format": "#,#0.0%'",
+          "formatType": "pbiFormat"
+          
+        },
+        "color": {
+          "condition": {"param": "highlight","empty": false,"value": "#4D8FF7"}
+          ,"value": "#070762"},
+        "size": {
+          "condition": {"param": "highlight","empty": false,"value": 35}
+          ,"value": 37},
+        "y": {
+              "value": 0
+            }
+      }
+    },
+    {
+      
+      "description": "ACTUAL_number_label",
+      "mark": {
+        "type": "text",
+        "font": "Century Gothic, Segoe UI",
+        "color": "#808080",
+        //"size": 12,
+        "fontWeight": "normal",
+        "xOffset": 0,
+        "yOffset": -8
+      },
+      "encoding": {
+        "text": {"value": "ציון ביצוע"
+        },
+        "color": {
+          "condition": {"param": "highlight","empty": false,"value": "#4D8FF7"}
+          ,"value": "#808080"},
+        "size": {
+          "condition": {"param": "highlight","empty": false,"value": 14}
+          ,"value": 15},
+        "y": {
+              "value": 20
+            }
+      }
+      
+    },
+ 
+    {
+      
+      "description": "Compe1_number_label",
+      "mark": {
+        "type": "text",
+        "font": "Century Gothic, Segoe UI",
+        "color": "#808080",
+        //"size": 12,
+        "fontWeight": "normal",
+        "xOffset": 0,
+        "yOffset": 35
+      },
+      "encoding": {
+        "text": {"value": "ציון מרווח"
+        },
+        "color": {
+          "condition": {"param": "highlight","empty": false,"value": "#4D8FF7"}
+          ,"value": "#808080"},
+        "size": {
+          "condition": {"param": "highlight","empty": false,"value": 14}
+          ,"value": 15},
+        "y": {
+              "value": 20
+            }
+      }
+      
+    },
+  
+    {
+ 
+      "description": "Compe1_number",
+      "mark": {
+        "type": "text",
+        "font": "Century Gothic, Segoe UI",
+        //"color": "#070762",
+        //"size": 20,
+        "fontWeight": "bold",
+        "xOffset": 0,
+        "yOffset": 40
+      },
+      "encoding": {
+        "text": {
+          "field": "APP_SFID_DCOUNT_CURRENT",
+          "format": "#,#0.0%'",
+          "formatType": "pbiFormat"
+        },
+        "color": {
+          "condition": {"param": "highlight","empty": false,"value": "#4D8FF7"}
+          ,"value": "#070762"},
+        "size": {
+          "condition": {"param": "highlight","empty": false,"value": 19}
+          ,"value": 20},
+        "y": {
+              "value": 0
+            }
+      }
+    },
+    
+    {  
+      "params": [
+    {
+      "name": "highlight",
+      "select": {"type": "point", "on": "pointerover"
+      , "clear": "mouseout"
+      }
+    },
+    {"name": "select", "select": "point"}
+  ],
+      "description": "HOVER_TRIGER",
+      "mark": {
+        "type": "bar",
+        "color": "#ffffff00",
+        //"color": "#4682b4",
+        "height": 120,
+        //"width": 200,
+        "xOffset": 0,
+        "yOffset": 0,
+         "tooltip": true
+      },
+      "encoding": {
+     
+        
+        "y": {
+              "value": 0
+            },
+        "tooltip": [
+          
+          
+            {
+              "field": "Target_sales",
+              "type": "quantitative",
+              "format": "#,#0'",          
+              "formatType": "pbiFormat",
+              "title": "יעד ביצוע"
+            },
+            {
+              "field": "sales",
+              "type": "quantitative",
+              "format": "#,#0'",          
+              "formatType": "pbiFormat",
+              "title": "ביצוע"
+            },
+            {
+              "field": "newlabelasc",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "משקל ביצוע"
+            },
+            {
+              "field": "SPREAD_TARGET",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "יעד מרווח"
+            },
+            {
+              "field": "SPREAD",
+              "type": "quantitative",
+              "format": "#,#0.00'",          
+              "formatType": "pbiFormat",
+              "title": "מרווח"
+            },
+            {
+              "field": "MAX_DATE",
+              "type": "quantitative",
+              "format": "ddmmyy'",          
+              "formatType": "pbiFormat",
+              "title": "תאריך נכונות"
+            }
+          ]
+      }
+    }
+   
+  ],
+  "encoding": {
+  "y": {
+      "field": "STAGE_IND_APP",
+      "type": "nominal",
+      "axis": {
+        "labelFont": "Segoe UI"
+        ,"labelFontSize": 10
+        ,"labelFontWeight": "bold"
+        },
+      "title": null
+     
+    }
+
+  }
+}
