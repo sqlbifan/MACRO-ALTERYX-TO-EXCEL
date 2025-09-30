@@ -1,4 +1,82 @@
-"transform": [
-    { "calculate": "datum.SORT == 1 ? datum.SCORE_TEXT : null", "as": "SCORE_TEXT_SORT1" },
-    { "aggregate": [ { "op": "max", "field": "SCORE_TEXT_SORT1", "as": "SCORE_TEXT_SELECTED" } ] }
+{
+  "description": "HOVER_TRIGER",
+  "data": { "values": [ { "key1": 1, "key5": 5 } ] },
+  "transform": [
+    {
+      "lookup": "key1",
+      "from": {
+        "data": { "name": "dataset" },
+        "key": "SORT",
+        "fields": ["SCORE_TEXT"]
+      },
+      "as": ["SCORE_TEXT_SELECTED_1"]
+    },
+    {
+      "lookup": "key5",
+      "from": {
+        "data": { "name": "dataset" },
+        "key": "SORT",
+        "fields": ["SCORE_TEXT"]
+      },
+      "as": ["SCORE_TEXT_SELECTED_5"]
+    }
   ],
+  "mark": {
+    "type": "bar",
+    "color": "#ffffff00",
+    "height": 120,
+    "xOffset": 0,
+    "yOffset": 0,
+    "tooltip": true
+  },
+  "encoding": {
+    "y": { "value": 0 },
+    "tooltip": [
+      {
+        "field": "Target_sales",
+        "type": "quantitative",
+        "format": "#,#0'",
+        "formatType": "pbiFormat",
+        "title": "יעד ביצוע"
+      },
+      {
+        "field": "sales",
+        "type": "quantitative",
+        "format": "#,#0'",
+        "formatType": "pbiFormat",
+        "title": "ביצוע"
+      },
+      {
+        "field": "SCORE_TEXT_SELECTED_1",
+        "type": "nominal",
+        "title": "ציון (SORT=1)"
+      },
+      {
+        "field": "SCORE_TEXT_SELECTED_5",
+        "type": "nominal",
+        "title": "ציון (SORT=5)"
+      },
+      {
+        "field": "SPREAD_TARGET",
+        "type": "quantitative",
+        "format": "#,#0.00'",
+        "formatType": "pbiFormat",
+        "title": "יעד מרווח"
+      },
+      {
+        "field": "SPREAD",
+        "type": "quantitative",
+        "format": "#,#0.00'",
+        "formatType": "pbiFormat",
+        "title": "מרווח"
+      },
+      {
+        "field": "MAX_DATE",
+        "type": "quantitative",
+        "format": "ddmmyy'",
+        "formatType": "pbiFormat",
+        "title": "תאריך נכונות"
+      }
+    ]
+  }
+}
