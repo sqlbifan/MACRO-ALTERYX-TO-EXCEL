@@ -1,24 +1,198 @@
 {
-  "aggregate": [{"op": "distinct", "field": "ZONE_DESC", "as": "rowCount"}]
-},
-{
-  "calculate": "datum.rowCount * barheight * 1.3", 
-  "as": "autoHeight"
-}
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "spacing": -5,
+  "autosize": {"type": "fit-y", "contains": "padding"},
+  "config": {
+    "title": {
+      "font": "Segoe UI",
+      "fontSize": 16,
+      "fontWeight": "bold"
+    }
+  },
 
-"height": {"expr": "autoHeight"}
-
-
-{
-  "title": {"text": "מרווח"},
-  "transform": [
-    {"aggregate": [{"op": "distinct", "field": "ZONE_DESC", "as": "rowCount"}]},
-    {"calculate": "datum.rowCount * barheight * 1.3", "as": "autoHeight"},
-    {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
-    {"calculate": "-datum.plan_2", "as": "NEG_plan_2"}
+  "params": [
+    {"name": "barheight", "value": 30},
+    {"name": "TextSize", "value": 15},
+    {"name": "TextSize2", "value": 13},
+    {"name": "minTextPctLeft", "value": 0.18},
+    {"name": "minTextPctRight", "value": 0.18},
+    {"name": "width_1", "value": "container"},
+    {"name": "height_1", "value": "container"}
   ],
-  "width": "container",
-  "height": {"expr": "autoHeight"},
-  "layer": [ ... ]
-}
 
+  "data": {"name": "dataset"},
+
+  "hconcat": [
+
+    /* ========== שמאל (מרווח) ========== */
+    {
+      "title": {
+        "text": "מרווח",
+        "anchor": "middle",
+        "color": "#B3B3B3",
+        "font": "Segoe UI",
+        "fontWeight": "bold"
+      },
+
+      "transform": [
+        {"aggregate": [{"op": "distinct", "field": "ZONE_DESC", "as": "rowCount"}]},
+        {"calculate": "datum.rowCount * barheight * 1.3", "as": "autoHeight"},
+
+        {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
+        {"calculate": "-datum.plan_2", "as": "NEG_plan_2"},
+        {"calculate": "datum.ACTUAL_vs_TARGET_2", "as": "AVT2"},
+        {
+          "joinaggregate": [
+            {"op": "max", "field": "ACTUAL_2", "as": "MaxActual2"},
+            {"op": "max", "field": "plan_2", "as": "MaxPlan2"}
+          ]
+        },
+        {
+          "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2",
+          "as": "GRID_XMIN_L"
+        },
+        {
+          "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? datum.MaxActual2 : datum.MaxPlan2",
+          "as": "GRID_XMAX_L"
+        },
+        {"calculate": "datum.ACTUAL_2 / datum.GRID_XMAX_L", "as": "BAR_PCT_LEFT"}
+      ],
+
+      "width": "container",
+      "height": {"expr": "autoHeight"},
+
+      "layer": [
+        {
+          "name": "y_labels_clickable",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "normal",
+            "size": 15,
+            "align": "right",
+            "baseline": "middle",
+            "dx": 6,
+            "cursor": "pointer"
+          },
+          "encoding": {
+            "y": {"field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5},
+            "x": {"value": -40, "type": "quantitative"},
+            "text": {"field": "ZONE_DESC"}
+          }
+        },
+
+        {
+          "name": "gridlines_left",
+          "mark": {"type": "rule", "color": "#E6E6E6", "size": 2},
+          "encoding": {
+            "y": {"field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5},
+            "x": {"value": -100},
+            "x2": {"value": 0}
+          }
+        },
+
+        {
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['AVT2'] < 0 ? '#F87460' : '#F4F2F2'"},
+            "height": {"expr": "barheight"}
+          },
+          "encoding": {
+            "x": {"field": "NEG_plan_2", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC", "type": "nominal"}
+          }
+        },
+
+        {
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['AVT2'] > 1 ? '#15B29E' : '#094780'"},
+            "height": {"expr": "barheight"}
+          },
+          "encoding": {
+            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC", "type": "nominal"}
+          }
+        }
+      ],
+
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "sort": {"field": "ACTUAL", "order": "descending"},
+          "axis": {"labels": false, "grid": true, "gridColor": "#E6E6E6"}
+        }
+      }
+    },
+
+    /* ========== ימין (ביצוע) ========== */
+    {
+      "title": {
+        "text": "ביצוע",
+        "anchor": "middle",
+        "color": "#B3B3B3",
+        "font": "Segoe UI",
+        "fontWeight": "bold"
+      },
+
+      "transform": [
+        {"aggregate": [{"op": "distinct", "field": "ZONE_DESC", "as": "rowCount"}]},
+        {"calculate": "datum.rowCount * barheight * 1.3", "as": "autoHeight"},
+
+        {
+          "joinaggregate": [
+            {"op": "max", "field": "ACTUAL", "as": "MaxActual"},
+            {"op": "max", "field": "plan", "as": "Maxplan"}
+          ]
+        },
+        {"calculate": "datum.ACTUAL_vs_TARGET", "as": "AVT"},
+        {
+          "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan",
+          "as": "GRID_XMAX_R"
+        },
+        {"calculate": "datum.ACTUAL / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT"}
+      ],
+
+      "width": "container",
+      "height": {"expr": "autoHeight"},
+
+      "layer": [
+        {
+          "mark": {
+            "type": "bar",
+            "color": "#F4F2F2",
+            "height": {"expr": "barheight"}
+          },
+          "encoding": {
+            "x": {"field": "plan", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC", "type": "nominal"}
+          }
+        },
+
+        {
+          "mark": {
+            "type": "bar",
+            "color": {"expr": "datum['ACTUAL_vs_TARGET'] > 1 ? '#15B29E' : '#094780'"},
+            "height": {"expr": "barheight"}
+          },
+          "encoding": {
+            "x": {"field": "ACTUAL", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC", "type": "nominal"}
+          }
+        }
+      ],
+
+      "encoding": {
+        "y": {
+          "field": "ZONE_DESC",
+          "type": "nominal",
+          "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"},
+          "axis": {"labels": false, "grid": true, "gridColor": "#EDEDED"}
+        }
+      }
+    }
+  ],
+
+  "view": {"stroke": null}
+}
