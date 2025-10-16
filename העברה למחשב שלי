@@ -7,3 +7,18 @@
 }
 
 "height": {"expr": "autoHeight"}
+
+
+{
+  "title": {"text": "מרווח"},
+  "transform": [
+    {"aggregate": [{"op": "distinct", "field": "ZONE_DESC", "as": "rowCount"}]},
+    {"calculate": "datum.rowCount * barheight * 1.3", "as": "autoHeight"},
+    {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
+    {"calculate": "-datum.plan_2", "as": "NEG_plan_2"}
+  ],
+  "width": "container",
+  "height": {"expr": "autoHeight"},
+  "layer": [ ... ]
+}
+
