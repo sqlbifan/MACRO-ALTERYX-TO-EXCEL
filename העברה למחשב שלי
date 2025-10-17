@@ -1,4 +1,1 @@
-row_count = CALCULATE(DISTINCTCOUNT('malmash_bankait_converter'[Branch_Name_mlmsh]),ALL(malmash_bankait_converter[Branch_Name_mlmsh]))
-
-viz_hight = [row_count]*30
-
+"height": {"expr": "max(datum.viz_height)"}
