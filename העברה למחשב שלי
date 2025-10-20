@@ -1,1 +1,76 @@
-[Error] Unrecognized signal name: "choose_side"
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 240,
+  "height": 100,
+  "config": {"view": {"stroke": null}},
+
+  "data": {"name": "dataset"},
+
+  "selection": {
+    "choose_side": {
+      "type": "single",
+      "fields": ["SORT FIELD"],
+      "on": "click",
+      "clear": false,
+      "init": {"SORT FIELD": "ACTUAL"}
+    }
+  },
+
+  "layer": [
+    {
+      "mark": {
+        "type": "rect",
+        "width": 100,
+        "height": 80,
+        "cornerRadius": 10,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "DISC", "type": "nominal", "axis": null},
+        "color": {
+          "condition": {
+            "param": "choose_side",
+            "empty": false,
+            "value": "#094780"
+          },
+          "value": "#E0E0E0"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "image",
+        "width": 60,
+        "height": 50,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "DISC", "type": "nominal"},
+        "url": {"field": "ICON"}
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 14,
+        "yOffset": 35,
+        "align": "center",
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "DISC", "type": "nominal"},
+        "text": {"field": "DISC"},
+        "color": {
+          "condition": {
+            "param": "choose_side",
+            "empty": false,
+            "value": "#FFFFFF"
+          },
+          "value": "#404040"
+        }
+      }
+    }
+  ]
+}
