@@ -1,2 +1,3 @@
-SELECT TRIM(REGEXP_REPLACE(col, '-\\s*$','')) AS clean_text
+SELECT 
+  TRIM(REGEXP_REPLACE(REGEXP_REPLACE(col, '[0-9]+', ''), '-\\s*$', '')) AS only_text
 FROM your_table;
