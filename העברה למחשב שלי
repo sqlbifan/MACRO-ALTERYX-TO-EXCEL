@@ -9,5 +9,9 @@ FROM your_table;
 SELECT 
   TRIM(REGEXP_REPLACE(REGEXP_REPLACE(col, '[0-9]+', ''), '[ ]*-$', '')) AS only_text
 FROM your_table;
+SELECT 
+  TRIM(REGEXP_REPLACE(col, '^מרחב\\s*', '')) AS clean_text
+FROM your_table;
+
 
 
