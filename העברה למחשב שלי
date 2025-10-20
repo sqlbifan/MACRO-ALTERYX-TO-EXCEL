@@ -1,48 +1,237 @@
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "width": 240,
-  "height": 100,
-  "config": {"view": {"stroke": null}},
-  "data": {"name": "dataset"},
-
+  "data": {
+    "name": "dataset"
+  },
+  "width": 200,
+  "height": 50,
+  "transform": [
+    {
+      "calculate": "100",
+      "as": "_background_width"
+    },
+    {
+      "calculate": "10",
+      "as": "_circle_padding"
+    },
+    {
+      "calculate": "datum['SORT'] == 1 ? datum['_circle_padding'] : datum['_background_width'] - datum['_circle_padding']",
+      "as": "_circle_position"
+    },
+    {
+      "calculate": "datum['SORT'] == 1 ? 'right' : 'left'",
+      "as": "_label_align"
+    },
+    {
+      "calculate": "10",
+      "as": "_label_padding"
+    },
+    {
+      "calculate": "datum['SORT'] == 1 ? datum['_background_width'] - datum['_label_padding'] : datum['_label_padding']",
+      "as": "_label_position"
+    }
+  ],
   "layer": [
     {
-      "mark": {
-        "type": "rect",
-        "width": 100,
-        "height": 80,
-        "cornerRadius": 10,
-        "color": "#E0E0E0"
-      },
-      "encoding": {
-        "x": {"field": "DISC", "type": "nominal", "axis": null}
-      }
+      "name": "OPTION_1",
+      "transform": [
+        {
+          "filter": "datum['SORT'] == 2"
+        }
+      ],
+      "layer": [
+        {
+          "name": "BACKGROUND_1",
+          "mark": {
+            "type": "bar",
+            "height": 20,
+            "cornerRadius": 20,
+            "stroke": "black",
+            "fill": {
+              "expr": "pbiColor(1)"
+            },
+            "y": 25
+          },
+          "encoding": {
+            "x": {
+              "field": "_background_width",
+              "type": "quantitative",
+              "axis": null
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "off"
+                },
+                "value": 0
+              },
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "CIRCLE_1",
+          "mark": {
+            "type": "circle",
+            "size": {
+              "expr": "PI * pow(19, 2)"
+            },
+            "opacity": 1,
+            "color": "white",
+            "y": 25
+          },
+          "encoding": {
+            "x": {
+              "field": "_circle_position",
+              "type": "quantitative"
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "off"
+                },
+                "value": 0
+              },
+              "value": 1
+            }
+          }
+        },
+        {
+          "name": "LABEL_1",
+          "mark": {
+            "type": "text",
+            "align": {
+              "expr": "datum['_label_align']"
+            },
+            "fontSize": 16,
+            "fontWeight": "bold",
+            "color": "white",
+            "y": 25
+          },
+          "encoding": {
+            "text": {
+              "field": "NAME",
+              "type": "nominal"
+            },
+            "x": {
+              "field": "_label_position",
+              "type": "quantitative"
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "off"
+                },
+                "value": 0
+              },
+              "value": 1
+            }
+          }
+        }
+      ]
     },
     {
-      "mark": {
-        "type": "image",
-        "width": 60,
-        "height": 50
-      },
-      "encoding": {
-        "x": {"field": "DISC", "type": "nominal"},
-        "url": {"field": "ICON"}
-      }
-    },
-    {
-      "mark": {
-        "type": "text",
-        "font": "Segoe UI",
-        "fontWeight": "bold",
-        "size": 14,
-        "yOffset": 35,
-        "align": "center"
-      },
-      "encoding": {
-        "x": {"field": "DISC", "type": "nominal"},
-        "text": {"field": "DISC"},
-        "color": {"value": "#404040"}
-      }
+      "name": "OPTION_2",
+      "transform": [
+        {
+          "filter": "datum['SORT'] == 1"
+        }
+      ],
+      "layer": [
+        {
+          "name": "BACKGROUND_2",
+          "mark": {
+            "type": "bar",
+            "height": 40,
+            "cornerRadius": 20,
+            "stroke": "black",
+            "fill": {
+              "expr": "pbiColor(1)"
+            },
+            "y": 25
+          },
+          "encoding": {
+            "x": {
+              "field": "_background_width",
+              "type": "quantitative",
+              "axis": null
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "on"
+                },
+                "value": 1
+              },
+              "value": 0
+            }
+          }
+        },
+        {
+          "name": "CIRCLE_2",
+          "mark": {
+            "type": "circle",
+            "size": {
+              "expr": "PI * pow(19, 2)"
+            },
+            "opacity": 1,
+            "color": "white",
+            "y": 25
+          },
+          "encoding": {
+            "x": {
+              "field": "_circle_position",
+              "type": "quantitative"
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "on"
+                },
+                "value": 1
+              },
+              "value": 0
+            }
+          }
+        },
+        {
+          "name": "LABEL_2",
+          "mark": {
+            "type": "text",
+            "align": {
+              "expr": "datum['_label_align']"
+            },
+            "fontSize": 16,
+            "fontWeight": "bold",
+            "color": "white",
+            "y": 25
+          },
+          "encoding": {
+            "text": {
+              "field": "NAME",
+              "type": "nominal"
+            },
+            "x": {
+              "field": "_label_position",
+              "type": "quantitative"
+            },
+            "opacity": {
+              "condition": {
+                "test": {
+                  "field": "__selected__",
+                  "equal": "on"
+                },
+                "value": 1
+              },
+              "value": 0
+            }
+          }
+        }
+      ]
     }
   ]
 }
