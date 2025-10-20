@@ -3,7 +3,6 @@
   "width": 240,
   "height": 100,
   "config": {"view": {"stroke": null}},
-
   "data": {"name": "dataset"},
 
   "selection": {
@@ -29,8 +28,7 @@
         "x": {"field": "DISC", "type": "nominal", "axis": null},
         "color": {
           "condition": {
-            "param": "choose_side",
-            "empty": false,
+            "selection": "choose_side",
             "value": "#094780"
           },
           "value": "#E0E0E0"
@@ -64,8 +62,7 @@
         "text": {"field": "DISC"},
         "color": {
           "condition": {
-            "param": "choose_side",
-            "empty": false,
+            "selection": "choose_side",
             "value": "#FFFFFF"
           },
           "value": "#404040"
