@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "spacing":2 ,
+  "spacing":-5 ,
   "autosize": {"type": "fit-y", "contains": "padding"},
   "config": {
     "title": {
@@ -49,6 +49,25 @@
       "width": "container",
       "height": "container",
       "layer": [
+        {
+          "name": "y_labels_clickable",
+          "mark": {
+            "type": "text",
+            "font": "Segoe UI",
+            "fontWeight": "normal",
+            "size": 15,
+            "align": "right",
+            "baseline": "middle",
+            "dx": 6,
+            "cursor": "pointer"
+          },
+          "encoding": {
+            "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "x": { "value": -100, "type": "quantitative" },  // מציב את הטקסט ליד שפת הגרף
+            "text": { "field": "ZONE_DESC" },
+            "tooltip": [{ "field": "ZONE_DESC", "type": "nominal", "title": "קטגוריה" }]
+          }
+        },
         {
           // grid line y axis
           "name": "gridlines_left", 
@@ -158,7 +177,9 @@
           "field": "ZONE_DESC",
           "type": "nominal",
           "title": null,
+          "sort": {"field": "SORT_BY 2" , "order": "descending"},
           "axis": {
+          "labels": false,
           "labelFont": "Segoe UI",
           "labelFontSize": 15,
           "labelFontWeight": "normal",
@@ -173,8 +194,8 @@
           "tickColor": "#FFFFFF00",
           "domain": false,
           "ticks": true
-          },
-          "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"}
+          }
+          
         }
       }
     },
@@ -318,6 +339,7 @@
           "field": "ZONE_DESC",
           "type": "nominal",
           "title": null,
+          "sort": {"field": "SORT_BY 2" , "order": "descending"},
           "axis": {
           "grid": true,
           "gridColor": "#EDEDED",
@@ -327,12 +349,11 @@
           "ticks": false,
           "title": null,
           "tickBand": "extent"
-        },
-          "sort": {"op": "sum", "field": "ACTUAL", "order": "descending"}
+        }
         }
       }
     }
   ],
-  "resolve": {"scale": {"y": "shared", "x": "independent"}},
+
   "view": {"stroke": null}
 }
