@@ -1,3 +1,8 @@
 SELECT 
   TRIM(REGEXP_REPLACE(REGEXP_REPLACE(col, '[0-9]+', ''), '-\\s*$', '')) AS only_text
 FROM your_table;
+
+SELECT 
+  TRIM(TRAILING FROM TRIM(REGEXP_REPLACE(col, '[ ]*-$', ''))) AS clean_text
+FROM your_table;
+
