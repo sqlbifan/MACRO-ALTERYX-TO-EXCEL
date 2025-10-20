@@ -1,2 +1,2 @@
-SELECT REGEXP_SUBSTR(col, '^[0-9]+') AS only_number
+SELECT TRIM(REGEXP_REPLACE(col, '-\\s*$','')) AS clean_text
 FROM your_table;
