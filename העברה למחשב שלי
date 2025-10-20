@@ -1,3 +1,84 @@
-hist_gray_R.png - https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(65037886-fca1-42f8-a58c-2992bbf00f6f)/Content/$value
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "width": 220,
+  "height": 80,
+  "config": {"view": {"stroke": null}},
+  
+  "params": [
+    {
+      "name": "sort_field",
+      "value": "ACTUAL"
+    }
+  ],
 
-hist_gray_L.png - https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(e712cc98-3881-4f8b-bff5-204d6f674512)/Content/$value
+  "data": {
+    "values": [
+      {
+        "side": "ביצוע",
+        "field": "ACTUAL",
+        "url": "https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(65037886-fca1-42f8-a58c-2992bbf00f6f)/Content/$value"
+      },
+      {
+        "side": "מרווח",
+        "field": "ACTUAL_2",
+        "url": "https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(e712cc98-3881-4f8b-bff5-204d6f674512)/Content/$value"
+      }
+    ]
+  },
+
+  "layer": [
+    {
+      "mark": {
+        "type": "image",
+        "width": 80,
+        "height": 60,
+        "cursor": "pointer",
+        "tooltip": null
+      },
+      "encoding": {
+        "x": {"field": "side", "type": "nominal", "axis": null},
+        "url": {"field": "url"},
+        "opacity": {
+          "condition": {"test": "datum.field == sort_field", "value": 1},
+          "value": 0.3
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "yOffset": 35,
+        "font": "Segoe UI",
+        "size": 13,
+        "align": "center",
+        "color": "#000000",
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "side", "type": "nominal"},
+        "text": {"field": "side"},
+        "opacity": {
+          "condition": {"test": "datum.field == sort_field", "value": 1},
+          "value": 0.6
+        }
+      }
+    }
+  ],
+
+  "selection": {
+    "choose_side": {
+      "type": "single",
+      "fields": ["field"],
+      "on": "click",
+      "bind": "legend",
+      "clear": false,
+      "init": {"field": "ACTUAL"}
+    }
+  },
+
+  "transform": [
+    {
+      "filter": "if(choose_side.field, sort_field=choose_side.field, sort_field)"
+    }
+  ]
+}
