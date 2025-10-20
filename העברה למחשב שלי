@@ -11,12 +11,8 @@
     }
   ],
 
-  "mark": {"type": "rect"},  // מצריך dataset, לכן נשאיר מבנה בסיסי
-  "encoding": {},
-
   "layer": [
     {
-      // רקע משתנה
       "mark": {
         "type": "rect",
         "width": 100,
@@ -25,15 +21,14 @@
         "cursor": "pointer"
       },
       "encoding": {
-        "x": {"field": "side", "type": "nominal", "axis": null},
+        "x": {"field": "DISC", "type": "nominal", "axis": null},
         "color": {
-          "condition": {"test": "datum.field == sort_field", "value": "#094780"},
+          "condition": {"test": "datum['SORT FIELD'] == sort_field", "value": "#094780"},
           "value": "#E0E0E0"
         }
       }
     },
     {
-      // תמונה מהשדה ICONS
       "mark": {
         "type": "image",
         "width": 60,
@@ -41,12 +36,11 @@
         "cursor": "pointer"
       },
       "encoding": {
-        "x": {"field": "side", "type": "nominal"},
-        "url": {"field": "ICONS"}
+        "x": {"field": "DISC", "type": "nominal"},
+        "url": {"field": "ICON"}
       }
     },
     {
-      // טקסט מתחת לתמונה
       "mark": {
         "type": "text",
         "font": "Segoe UI",
@@ -57,10 +51,10 @@
         "cursor": "pointer"
       },
       "encoding": {
-        "x": {"field": "side", "type": "nominal"},
-        "text": {"field": "side"},
+        "x": {"field": "DISC", "type": "nominal"},
+        "text": {"field": "DISC"},
         "color": {
-          "condition": {"test": "datum.field == sort_field", "value": "#FFFFFF"},
+          "condition": {"test": "datum['SORT FIELD'] == sort_field", "value": "#FFFFFF"},
           "value": "#404040"
         }
       }
@@ -70,16 +64,16 @@
   "selection": {
     "choose_side": {
       "type": "single",
-      "fields": ["field"],
+      "fields": ["SORT FIELD"],
       "on": "click",
       "clear": false,
-      "init": {"field": "ACTUAL"}
+      "init": {"SORT FIELD": "ACTUAL"}
     }
   },
 
   "transform": [
     {
-      "filter": "if(choose_side.field, sort_field=choose_side.field, sort_field)"
+      "filter": "if(choose_side['SORT FIELD'], sort_field = choose_side['SORT FIELD'], sort_field)"
     }
   ]
 }
