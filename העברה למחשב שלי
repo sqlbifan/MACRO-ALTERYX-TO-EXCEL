@@ -5,16 +5,6 @@
   "config": {"view": {"stroke": null}},
   "data": {"name": "dataset"},
 
-  "selection": {
-    "choose_side": {
-      "type": "single",
-      "fields": ["SORT FIELD"],
-      "on": "click",
-      "clear": false,
-      "init": {"SORT FIELD": "ACTUAL"}
-    }
-  },
-
   "layer": [
     {
       "mark": {
@@ -22,25 +12,17 @@
         "width": 100,
         "height": 80,
         "cornerRadius": 10,
-        "cursor": "pointer"
+        "color": "#E0E0E0"
       },
       "encoding": {
-        "x": {"field": "DISC", "type": "nominal", "axis": null},
-        "color": {
-          "condition": {
-            "selection": "choose_side",
-            "value": "#094780"
-          },
-          "value": "#E0E0E0"
-        }
+        "x": {"field": "DISC", "type": "nominal", "axis": null}
       }
     },
     {
       "mark": {
         "type": "image",
         "width": 60,
-        "height": 50,
-        "cursor": "pointer"
+        "height": 50
       },
       "encoding": {
         "x": {"field": "DISC", "type": "nominal"},
@@ -54,19 +36,12 @@
         "fontWeight": "bold",
         "size": 14,
         "yOffset": 35,
-        "align": "center",
-        "cursor": "pointer"
+        "align": "center"
       },
       "encoding": {
         "x": {"field": "DISC", "type": "nominal"},
         "text": {"field": "DISC"},
-        "color": {
-          "condition": {
-            "selection": "choose_side",
-            "value": "#FFFFFF"
-          },
-          "value": "#404040"
-        }
+        "color": {"value": "#404040"}
       }
     }
   ]
