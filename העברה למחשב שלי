@@ -75,4 +75,27 @@
             {"calculate": "-datum['ACTUAL_3']_2", "as": "NEG_ACTUAL_2"},
             {"calculate": "-datum['plan_3']_2", "as": "NEG_plan_2"}
           ],
-          "mark": "ba
+          "mark": "bar",
+          "encoding": {
+            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC_2", "type": "nominal", "sort": {"field": "SORT_BY 3", "order": "descending"}}
+          }
+        },
+        {
+          "title": {"text": "ביצוע", "color": "#B3B3B3"},
+          "transform": [
+            {"calculate": "datum['ACTUAL_3']", "as": "ACTUAL_3_VAL"},
+            {"calculate": "datum['plan_3']", "as": "PLAN_3_VAL"}
+          ],
+          "mark": "bar",
+          "encoding": {
+            "x": {"field": "ACTUAL_3_VAL", "type": "quantitative"},
+            "y": {"field": "ZONE_DESC_2", "type": "nominal", "sort": {"field": "SORT_BY 3", "order": "descending"}}
+          }
+        }
+      ]
+    }
+  ],
+  "resolve": {"scale": {"x": "shared", "y": "independent"}},
+  "config": {"view": {"stroke": null}}
+}
