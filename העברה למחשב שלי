@@ -1,9 +1,9 @@
 {
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "width": 220,
-  "height": 80,
+  "width": 240,
+  "height": 100,
   "config": {"view": {"stroke": null}},
-  
+
   "params": [
     {
       "name": "sort_field",
@@ -11,55 +11,57 @@
     }
   ],
 
-  "data": {
-    "values": [
-      {
-        "side": "ביצוע",
-        "field": "ACTUAL",
-        "url": "https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(65037886-fca1-42f8-a58c-2992bbf00f6f)/Content/$value"
-      },
-      {
-        "side": "מרווח",
-        "field": "ACTUAL_2",
-        "url": "https://powerbi16.hq.il.leumi/Reports/api/v2.0/Resources(e712cc98-3881-4f8b-bff5-204d6f674512)/Content/$value"
-      }
-    ]
-  },
+  "mark": {"type": "rect"},  // מצריך dataset, לכן נשאיר מבנה בסיסי
+  "encoding": {},
 
   "layer": [
     {
+      // רקע משתנה
       "mark": {
-        "type": "image",
-        "width": 80,
-        "height": 60,
-        "cursor": "pointer",
-        "tooltip": null
+        "type": "rect",
+        "width": 100,
+        "height": 80,
+        "cornerRadius": 10,
+        "cursor": "pointer"
       },
       "encoding": {
         "x": {"field": "side", "type": "nominal", "axis": null},
-        "url": {"field": "url"},
-        "opacity": {
-          "condition": {"test": "datum.field == sort_field", "value": 1},
-          "value": 0.3
+        "color": {
+          "condition": {"test": "datum.field == sort_field", "value": "#094780"},
+          "value": "#E0E0E0"
         }
       }
     },
     {
+      // תמונה מהשדה ICONS
+      "mark": {
+        "type": "image",
+        "width": 60,
+        "height": 50,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "side", "type": "nominal"},
+        "url": {"field": "ICONS"}
+      }
+    },
+    {
+      // טקסט מתחת לתמונה
       "mark": {
         "type": "text",
-        "yOffset": 35,
         "font": "Segoe UI",
-        "size": 13,
+        "fontWeight": "bold",
+        "size": 14,
+        "yOffset": 35,
         "align": "center",
-        "color": "#000000",
         "cursor": "pointer"
       },
       "encoding": {
         "x": {"field": "side", "type": "nominal"},
         "text": {"field": "side"},
-        "opacity": {
-          "condition": {"test": "datum.field == sort_field", "value": 1},
-          "value": 0.6
+        "color": {
+          "condition": {"test": "datum.field == sort_field", "value": "#FFFFFF"},
+          "value": "#404040"
         }
       }
     }
@@ -70,7 +72,6 @@
       "type": "single",
       "fields": ["field"],
       "on": "click",
-      "bind": "legend",
       "clear": false,
       "init": {"field": "ACTUAL"}
     }
