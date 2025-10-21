@@ -10,6 +10,12 @@
     "view": {"stroke": null}
   },
   "params": [
+    // 1. Selection for tracking the expanded parent ZONE_DESC
+    { 
+      "name": "drill_zone_select", 
+      "select": {"type": "point", "fields": ["ZONE_DESC"]}, 
+      "bind": "none" 
+    },
     {
       "name": "barheight",
       "value": 30
@@ -39,24 +45,23 @@
   "vconcat": [
     {
       // ------------------------------------------------------------------
-      // CHART 1: Upper Chart (ZONE_DESC) - FIXED: Aggregation added by ZONE_DESC
+      // CHART 1: Upper Chart (ZONE_DESC) - AGGREGATED AND CLICKABLE
       // ------------------------------------------------------------------
       "title": {
-        "text": "נתוני מרווח וביצוע לפי נציגות (ZONE_DESC)",
+        "text": "נתוני מרווח וביצוע לפי נציגות (ZONE_DESC) - לחץ על נציגות לפתיחת סניפים",
         "anchor": "start",
         "font": "Segoe UI",
         "fontSize": 16,
         "fontWeight": "bold"
       },
       "transform": [
-        // ** שלב 1: צבירת נתונים לפי ZONE_DESC כדי למנוע צפיפות **
+        // ** שלב 1: צבירת נתונים לפי ZONE_DESC **
         {
           "aggregate": [
             {"op": "sum", "field": "ACTUAL_4", "as": "ZONE_ACTUAL_4_SUM"},
             {"op": "sum", "field": "plan_4", "as": "ZONE_plan_4_SUM"},
             {"op": "sum", "field": "ACTUAL_3", "as": "ZONE_ACTUAL_3_SUM"},
             {"op": "sum", "field": "plan_3", "as": "ZONE_plan_3_SUM"},
-            // למיון, נשתמש בממוצע של שדה המיון המקורי
             {"op": "average", "field": "SORT_BY 2", "as": "ZONE_SORT_BY_2"} 
           ],
           "groupby": ["ZONE_DESC"]
@@ -109,6 +114,7 @@
           "width": "container",
           "height": {"step": 40},
           "layer": [
+            // Y-Label layer: NOW CLICKABLE TO SET SELECTION
             {
               "name": "y_labels_clickable",
               "mark": {
@@ -128,11 +134,20 @@
                   "bandPosition": 0.5
                 },
                 "x": {"value": -40, "type": "quantitative"},
+                // Highlight selected item
+                "color": {
+                  "condition": [
+                    {"selection": "drill_zone_select", "value": "#094780"}, // Selected item blue
+                    {"value": "#333333"} // Default color
+                  ]
+                },
+                // Add the selection interaction here
                 "text": {"field": "ZONE_DESC"},
                 "tooltip": [
                   {"field": "ZONE_DESC", "type": "nominal", "title": "קטגוריה"}
                 ]
-              }
+              },
+              "selection": { "drill_zone_select": { "type": "point", "fields": ["ZONE_DESC"] } }
             },
             {
               "name": "gridlines_left",
@@ -540,15 +555,45 @@
     },
     {
       // ------------------------------------------------------------------
-      // CHART 2: Lower Chart (BRANCH_DESC) - Left as is (confirmed working)
+      // CHART 2: Lower Chart (BRANCH_DESC) - FILTERED BY SELECTION
       // ------------------------------------------------------------------
       "title": {
-        "text": "נתוני מרווח וביצוע לפי סניף (BRANCH_DESC)",
+        "text": {
+          "expr": "length(data('drill_zone_select_store')) > 0 ? 'סניפים עבור: ' + format(data('drill_zone_select_store')[0].ZONE_DESC) : 'סניפים (לחץ על נציגות למעלה לסינון)'"
+        },
         "anchor": "start",
         "font": "Segoe UI",
         "fontSize": 16,
         "fontWeight": "bold"
       },
+      "transform": [
+        // ** שלב 1: סינון לפי ZONE_DESC שנבחר (אם נבחר) **
+        // Chart 2 now only shows data belonging to the ZONE_DESC selected in Chart 1.
+        {"filter": {"selection": "drill_zone_select"}},
+        
+        // ** שלב 2: שאר הטרנספורמציות המקוריות של BRANCH_DESC **
+        {"calculate": "-datum['ACTUAL_4']", "as": "NEG_ACTUAL_4"},
+        {"calculate": "-datum['plan_4']", "as": "NEG_plan_4"},
+        {"calculate": "datum['ACTUAL_vs_TARGET_4']", "as": "AVT2"},
+        {
+          "joinaggregate": [
+            {"op": "max", "field": "ACTUAL_4", "as": "MaxActual2"},
+            {"op": "max", "field": "plan_4", "as": "MaxPlan2"}
+          ]
+        },
+        {
+          "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2",
+          "as": "GRID_XMIN_L"
+        },
+        {
+          "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? datum.MaxActual2 : datum.MaxPlan2",
+          "as": "GRID_XMAX_L"
+        },
+        {
+          "calculate": "datum['ACTUAL_4'] / datum.GRID_XMAX_L",
+          "as": "BAR_PCT_LEFT"
+        }
+      ],
       "hconcat": [
         /* --------- LEFT (מרווח, BRANCH_DESC) --------- */
         {
@@ -560,29 +605,6 @@
             "fontWeight": "bold",
             "subtitle": null
           },
-          "transform": [
-            {"calculate": "-datum['ACTUAL_4']", "as": "NEG_ACTUAL_4"},
-            {"calculate": "-datum['plan_4']", "as": "NEG_plan_4"},
-            {"calculate": "datum['ACTUAL_vs_TARGET_4']", "as": "AVT2"},
-            {
-              "joinaggregate": [
-                {"op": "max", "field": "ACTUAL_4", "as": "MaxActual2"},
-                {"op": "max", "field": "plan_4", "as": "MaxPlan2"}
-              ]
-            },
-            {
-              "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2",
-              "as": "GRID_XMIN_L"
-            },
-            {
-              "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? datum.MaxActual2 : datum.MaxPlan2",
-              "as": "GRID_XMAX_L"
-            },
-            {
-              "calculate": "datum['ACTUAL_4'] / datum.GRID_XMAX_L",
-              "as": "BAR_PCT_LEFT"
-            }
-          ],
           "width": "container",
           "height": {"step": 40},
           "layer": [
@@ -666,7 +688,7 @@
                   {"field": "ACTUAL_vs_TARGET_4", "type": "quantitative", "format": "#,#0.0%'", "formatType": "pbiFormat", "title": "ציון מרווח"},
                   {"field": "plan_3", "type": "quantitative", "format": "#,##0,,.00M'", "formatType": "pbiFormat", "title": "יעד ביצוע"},
                   {"field": "ACTUAL_3", "type": "quantitative", "format": "#,##0,,.00M'", "formatType": "pbiFormat", "title": "ביצוע"},
-                  {"field": "ACTUAL_vs_TARGET_3", "type": "quantitative", "format": "#,#0.0%'", "formatType": "pbiFormat", "title": "ציון ביצוע"}
+                  {"field": "ACTUAL_vs_TARGET_4", "type": "quantitative", "format": "#,#0.0%'", "formatType": "pbiFormat", "title": "ציון ביצוע"}
                 ]
               }
             },
