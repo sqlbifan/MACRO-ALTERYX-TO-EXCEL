@@ -13,5 +13,10 @@ SELECT
   TRIM(REGEXP_REPLACE(col, '^מרחב\\s*', '')) AS clean_text
 FROM your_table;
 
+SELECT
+    TRIM(OREPLACE(שם_העמודה, 'מרחב ', '')) AS עמודה_חדשה
+FROM
+    שם_הטבלה;
+
 
 
