@@ -1,22 +1,123 @@
-SELECT 
-  TRIM(REGEXP_REPLACE(REGEXP_REPLACE(col, '[0-9]+', ''), '-\\s*$', '')) AS only_text
-FROM your_table;
-
-SELECT 
-  TRIM(TRAILING FROM TRIM(REGEXP_REPLACE(col, '[ ]*-$', ''))) AS clean_text
-FROM your_table;
-
-SELECT 
-  TRIM(REGEXP_REPLACE(REGEXP_REPLACE(col, '[0-9]+', ''), '[ ]*-$', '')) AS only_text
-FROM your_table;
-SELECT 
-  TRIM(REGEXP_REPLACE(col, '^מרחב\\s*', '')) AS clean_text
-FROM your_table;
-
-SELECT
-    TRIM(OREPLACE(שם_העמודה, 'מרחב ', '')) AS עמודה_חדשה
-FROM
-    שם_הטבלה;
-
-
-
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "spacing": -5,
+  "config": {
+    "title": {
+      "font": "Segoe UI",
+      "fontSize": 16,
+      "fontWeight": "bold"
+    }
+  },
+  "params": [
+    { "name": "barheight", "value": 30 },
+    { "name": "TextSize", "value": 15 },
+    { "name": "TextSize2", "value": 13 },
+    { "name": "minTextPctLeft", "value": 0.18 },
+    { "name": "minTextPctRight", "value": 0.18 },
+    { "name": "sort_field", "expr": "data('dataset')[0].Sort_By" }
+  ],
+  "data": { "name": "dataset" },
+  "hconcat": [
+    /* --------- LEFT (mirror, responsive, no Y axis) --------- */
+    {
+      "title": { "text": "מרווח", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold", "subtitle": null },
+      "transform": [
+        { "calculate": "-datum.ACTUAL_4", "as": "NEG_ACTUAL_4" },
+        { "calculate": "-datum.PLAN_4", "as": "NEG_PLAN_4" },
+        { "calculate": "datum.actual_vs_target_4", "as": "AVT4" },
+        {
+          "joinaggregate": [
+            { "op": "max", "field": "ACTUAL_4", "as": "MaxActual4" },
+            { "op": "max", "field": "PLAN_4", "as": "MaxPlan4" }
+          ]
+        },
+        { "calculate": "datum.MaxActual4 > datum.MaxPlan4 ? -datum.MaxActual4 : -datum.MaxPlan4", "as": "GRID_XMIN_L" },
+        { "calculate": "datum.MaxActual4 > datum.MaxPlan4 ? datum.MaxActual4 : datum.MaxPlan4", "as": "GRID_XMAX_L" },
+        { "calculate": "datum.ACTUAL_4 / datum.GRID_XMAX_L", "as": "BAR_PCT_LEFT" }
+      ],
+      "width": "container",
+      "height": { "step": 40 },
+      "layer": [
+        {
+          "name": "y_labels_clickable",
+          "mark": { "type": "text", "font": "Segoe UI", "fontWeight": "normal", "size": 15, "align": "right", "baseline": "middle", "dx": 6, "cursor": "pointer" },
+          "encoding": {
+            "y": { "field": "BRANCH_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "x": { "value": -40, "type": "quantitative" },
+            "text": { "field": "BRANCH_DESC" },
+            "tooltip": [{ "field": "BRANCH_DESC", "type": "nominal", "title": "קטגוריה" }]
+          }
+        },
+        {
+          "name": "gridlines_left",
+          "mark": { "type": "rule", "color": "#E6E6E6", "size": 2, "opacity": 1, "zindex": 0, "yOffset": 20 },
+          "encoding": {
+            "y": { "field": "BRANCH_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "x": { "value": -100 },
+            "x2": { "value": 0 }
+          }
+        },
+        {
+          "mark": { "type": "bar", "color": { "expr": "datum['AVT4']<0? '#F87460': '#F4F2F2'" }, "height": { "expr": "barheight" }, "stroke": null },
+          "encoding": {
+            "x": { "field": "NEG_PLAN_4", "type": "quantitative", "axis": null },
+            "tooltip": [
+              { "field": "BRANCH_DESC", "type": "nominal", "title": "נציגות" },
+              { "field": "PLAN_4", "type": "quantitative", "title": "יעד מרווח" },
+              { "field": "ACTUAL_4", "type": "quantitative", "title": "מרווח" },
+              { "field": "actual_vs_target_4", "type": "quantitative", "title": "ציון מרווח" },
+              { "field": "PLAN_3", "type": "quantitative", "title": "יעד ביצוע" },
+              { "field": "ACTUAL_3", "type": "quantitative", "title": "ביצוע" },
+              { "field": "actual_vs_target_3", "type": "quantitative", "title": "ציון ביצוע" }
+            ]
+          }
+        },
+        {
+          "mark": { "type": "bar", "color": { "expr": "datum['AVT4']>1? '#15B29E': '#094780'" }, "height": { "expr": "barheight" } },
+          "encoding": { "x": { "field": "NEG_ACTUAL_4", "type": "quantitative", "axis": null } }
+        },
+        {
+          "mark": { "type": "rule", "color": "#cccccc", "point": { "shape": "M0 0h1v15h-1z", "yOffset": -16, "size": 17, "color": { "expr": "datum['AVT4']>1? '#FFFFFF00': '#808080'" } }, "stroke": "#FFFFFF00" },
+          "encoding": { "x": { "field": "NEG_PLAN_4", "type": "quantitative", "axis": null } }
+        },
+        {
+          "mark": { "type": "text", "font": "Segoe UI", "fontWeight": "bold", "align": { "expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? 'left' : 'right'" }, "xOffset": { "expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? 3 : -3" }, "color": { "expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['actual_vs_target_4']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'" }, "yOffset": -6, "size": { "expr": "TextSize" } },
+          "encoding": { "text": { "field": "ACTUAL_4" }, "x": { "field": "NEG_ACTUAL_4", "type": "quantitative" } }
+        }
+      ],
+      "encoding": {
+        "y": { "field": "BRANCH_DESC", "type": "nominal", "sort": { "field": "SORT_BY 4", "order": "descending" }, "axis": { "labels": false, "grid": true } }
+      }
+    },
+    /* --------- RIGHT (responsive, keeps Y axis) --------- */
+    {
+      "title": { "text": "ביצוע", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold" },
+      "transform": [
+        { "joinaggregate": [{ "op": "max", "field": "ACTUAL_3", "as": "MaxActual3" }, { "op": "max", "field": "PLAN_3", "as": "MaxPlan3" }] },
+        { "calculate": "datum.actual_vs_target_3", "as": "AVT3" },
+        { "calculate": "datum.MaxActual3 > datum.MaxPlan3 ? datum.MaxActual3 : datum.MaxPlan3", "as": "GRID_XMAX_R" },
+        { "calculate": "datum.ACTUAL_3 / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT" }
+      ],
+      "width": "container",
+      "height": { "step": 40 },
+      "layer": [
+        {
+          "mark": { "type": "bar", "color": "#F4F2F2", "height": { "expr": "barheight" } },
+          "encoding": { "x": { "field": "PLAN_3", "type": "quantitative" } }
+        },
+        {
+          "mark": { "type": "bar", "color": { "expr": "datum['actual_vs_target_3']>1? '#15B29E': '#094780'" }, "height": { "expr": "barheight" } },
+          "encoding": { "x": { "field": "ACTUAL_3", "type": "quantitative" } }
+        },
+        {
+          "mark": { "type": "text", "font": "Segoe UI", "fontWeight": "bold", "color": { "expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['actual_vs_target_3']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'" }, "align": { "expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? 'right' : 'left'" }, "xOffset": { "expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? -3 : 3" }, "yOffset": -6, "size": { "expr": "TextSize" } },
+          "encoding": { "text": { "field": "ACTUAL_3" }, "x": { "field": "ACTUAL_3", "type": "quantitative" } }
+        }
+      ],
+      "encoding": {
+        "y": { "field": "BRANCH_DESC", "type": "nominal", "sort": { "field": "SORT_BY 4", "order": "descending" }, "axis": { "labels": false, "grid": true } }
+      }
+    }
+  ],
+  "view": { "stroke": null }
+}
