@@ -47,18 +47,18 @@
       
       },
       "transform": [
-        {"calculate": "-datum.ACTUAL_2", "as": "NEG_ACTUAL_2"},
-        {"calculate": "-datum.plan_2", "as": "NEG_plan_2"},
-        {"calculate": "datum.ACTUAL_vs_TARGET_2", "as": "AVT2"},
+        {"calculate": "-datum['ACTUAL_4']", "as": "NEG_ACTUAL_4"},
+        {"calculate": "-datum['plan_4']", "as": "NEG_plan_4"},
+        {"calculate": "datum['ACTUAL_vs_TARGET_4']", "as": "AVT2"},
         {
           "joinaggregate": [
-            {"op": "max", "field": "ACTUAL_2", "as": "MaxActual2"},
-            {"op": "max", "field": "plan_2", "as": "MaxPlan2"}
+            {"op": "max", "field": "ACTUAL_4", "as": "MaxActual2"},
+            {"op": "max", "field": "plan_4", "as": "MaxPlan2"}
           ]
         },
         { "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2", "as": "GRID_XMIN_L" },
         { "calculate": "datum.MaxActual2 > datum.MaxPlan2 ? datum.MaxActual2 : datum.MaxPlan2", "as": "GRID_XMAX_L" },
-        { "calculate": "datum.ACTUAL_2 / datum.GRID_XMAX_L", "as": "BAR_PCT_LEFT" }
+        { "calculate": "datum['ACTUAL_4'] / datum.GRID_XMAX_L", "as": "BAR_PCT_LEFT" }
       ],
       "width": "container",
       //"width": 100, 
@@ -77,10 +77,10 @@
             "cursor": "pointer"
           },
           "encoding": {
-            "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "y": { "field": "BRANCH_DESC", "type": "nominal", "bandPosition": 0.5 },
             "x": { "value": -40, "type": "quantitative" },  // מציב את הטקסט ליד שפת הגרף
-            "text": { "field": "ZONE_DESC" },
-            "tooltip": [{ "field": "ZONE_DESC", "type": "nominal", "title": "קטגוריה" }]
+            "text": { "field": "BRANCH_DESC" },
+            "tooltip": [{ "field": "BRANCH_DESC", "type": "nominal", "title": "קטגוריה" }]
           }
         },
         {
@@ -88,64 +88,64 @@
           "name": "gridlines_left", 
           "mark": { "type": "rule", "color": "#E6E6E6", "size": 2, "opacity": 1, "zindex": 0, "yOffset": 20 },
           "encoding": {
-            "y": { "field": "ZONE_DESC", "type": "nominal", "bandPosition": 0.5 },
+            "y": { "field": "BRANCH_DESC", "type": "nominal", "bandPosition": 0.5 },
             "x": { "value":-100},
             "x2": { "value": 0 }
           }
         },
                   
         {
-          // plan_2 bar
+          // plan_4 bar
           "mark": {"type": "bar", 
           "color": {"expr": "datum['AVT2']<0? '#F87460': '#F4F2F2'"},
           "height":{"expr": "barheight"},
           "stroke": null
           },
           "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null},
+            "x": {"field": "NEG_plan_4", "type": "quantitative", "axis": null},
             "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -156,56 +156,56 @@
         },
         
         {
-          // actual_2_bar
+          // ACTUAL_4_bar
           "mark": {"type": "bar",
             "color": {"expr": "datum['AVT2']>1? '#15B29E': '#094780'"},
            "height":{"expr": "barheight"} 
            },
           "encoding": {
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null},
+            "x": {"field": "NEG_ACTUAL_4", "type": "quantitative", "axis": null},
             "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -229,12 +229,12 @@
             "stroke": "#FFFFFF00"
           },
           "encoding": {
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "x": {"field": "NEG_plan_4", "type": "quantitative", "axis": null}
           }
         },
       
         {
-          //actual_2 text
+          //ACTUAL_4 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
@@ -244,17 +244,17 @@
             //"xOffset": {"expr": "abs(datum['AVT2']) < 0.65 ?-3 : 3"},
             "xOffset": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? 3 : -3"},
             //"color": {"expr": "datum['AVT2']>0.65? datum['AVT2']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
-            "color": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['ACTUAL_vs_TARGET_2']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['ACTUAL_vs_TARGET_4']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
             "yOffset": -6,
             "size": {"expr": "TextSize"} 
           },
           "encoding": {
-            "text": {"field": "ACTUAL_2", "format": "#0.0'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL_4", "format": "#0.0'", "formatType": "pbiFormat"},
+            "x": {"field": "NEG_ACTUAL_4", "type": "quantitative", "axis": null}
           }
         },
         {
-          //plan_2 text
+          //plan_4 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
@@ -266,12 +266,12 @@
             "size": {"expr": "TextSize2"} 
           },
           "encoding": {
-            "text": {"field": "plan_2", "format": "#0.0'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_plan_2", "type": "quantitative", "axis": null}
+            "text": {"field": "plan_4", "format": "#0.0'", "formatType": "pbiFormat"},
+            "x": {"field": "NEG_plan_4", "type": "quantitative", "axis": null}
           }
         },
         {
-          // actual_vs_target_2 text
+          // ACTUAL_vs_TARGET_4 text
           "mark": {
             "type": "text",
             "font": "Segoe UI",
@@ -281,19 +281,19 @@
             //"xOffset": {"expr": "abs(datum['AVT2']) < 0.65 ?-3 : 3"},
             "xOffset": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? 3 : -3"},
             //"color": {"expr": "datum['AVT2']>0.65? datum['AVT2']>1? '#FFFFFF': '#70BBFF': '#FFFFFF00'"},
-            "color": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['ACTUAL_vs_TARGET_2']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_LEFT >= minTextPctLeft ? (datum['ACTUAL_vs_TARGET_4']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
             "yOffset": 7,
             "size": {"expr": "TextSize2"} 
           },
           "encoding": {
             "text": {"field": "AVT2", "format": "##0.0%'", "formatType": "pbiFormat"},
-            "x": {"field": "NEG_ACTUAL_2", "type": "quantitative", "axis": null}
+            "x": {"field": "NEG_ACTUAL_4", "type": "quantitative", "axis": null}
           }
         }
       ],
       "encoding": {
         "y": {
-          "field": "ZONE_DESC",
+          "field": "BRANCH_DESC",
           "type": "nominal",
           "title": null,
           "sort": {"field": "SORT_BY 2" , "order": "descending"},
@@ -327,20 +327,20 @@
       "transform": [
         {
           "joinaggregate": [
-            {"op": "max", "field": "ACTUAL", "as": "MaxActual"},
-            {"op": "max", "field": "plan", "as": "Maxplan"}
+            {"op": "max", "field": "ACTUAL_3", "as": "MaxActual"},
+            {"op": "max", "field": "plan_3", "as": "Maxplan"}
           ]
         },
-        {"calculate": "datum.ACTUAL_vs_TARGET", "as": "AVT"},
+        {"calculate": "datum['ACTUAL_vs_TARGET_3']", "as": "AVT"},
         { "calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R" },
-        { "calculate": "datum.ACTUAL / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT" }
+        { "calculate": "datum['ACTUAL_3'] / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT" }
       ],
       "width": "container",
       "height": {"step": 40}, 
       "layer": [
        
         {
-          // plan bar
+          // plan_3 bar
           "description": "target bar",
           "mark": {
             "type": "bar",
@@ -349,50 +349,50 @@
             "point": {"yOffset": -8, "size": 0.003, "color": "#E6E6E6", "height": 30},
             "stroke": null
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null},
+          "encoding": {"x": {"field": "plan_3", "type": "quantitative", "axis": null},
             "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -406,54 +406,54 @@
           // actual bar
           "description": "actual bar",
           "mark": {"type": "bar", 
-          "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#15B29E': '#094780'"},
+          "color": {"expr": "datum['ACTUAL_vs_TARGET_3']>1? '#15B29E': '#094780'"},
           "height":{"expr": "barheight"}
           
           },
-          "encoding": {"x": {"field": "ACTUAL", "type": "quantitative", "axis": null},
+          "encoding": {"x": {"field": "ACTUAL_3", "type": "quantitative", "axis": null},
           "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -466,7 +466,7 @@
 
         },
         {
-          // plan mark
+          // plan_3 mark
           "description": "target mark",
           "mark": {
             "type": "rule",
@@ -475,56 +475,56 @@
               "shape": "M0 0h1v15h-1z",
               "yOffset": -16,
               "size": 17,
-              "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#FFFFFF00': '#808080'"},
-              //"opacity": {"expr": "datum['ACTUAL_vs_TARGET']>1? 0.5: 1"},
+              "color": {"expr": "datum['ACTUAL_vs_TARGET_3']>1? '#FFFFFF00': '#808080'"},
+              //"opacity": {"expr": "datum['ACTUAL_vs_TARGET_3']>1? 0.5: 1"},
               "height": 30
             },
             "stroke": "#FFFFFF00"
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null},
+          "encoding": {"x": {"field": "plan_3", "type": "quantitative", "axis": null},
           "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -545,12 +545,12 @@
               "yOffset": -25,
               "xOffset": -8,
               "size": 0.005,
-              "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#FFFFFF00'"},             
+              "color": {"expr": "datum['ACTUAL_vs_TARGET_3']>1? '#808080': '#FFFFFF00'"},             
               "height": 30
             },
             "stroke": "#FFFFFF00"
           },
-          "encoding": {"x": {"field": "plan", "type": "quantitative", "axis": null}}
+          "encoding": {"x": {"field": "plan_3", "type": "quantitative", "axis": null}}
         },
         {
           // actual text
@@ -559,79 +559,79 @@
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            //"color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
-            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
-            //"align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
+            //"color": {"expr": "datum['ACTUAL_3']> 10000000? datum['ACTUAL_vs_TARGET_3']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET_3']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            //"align": {"expr": "datum['ACTUAL_3'] < 10000000 ? 'left' : 'right'"},
             "align": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? 'right' : 'left'"},
-            //"xOffset": {"expr": "datum['ACTUAL'] < 10000000 ? 3 : -3"},
+            //"xOffset": {"expr": "datum['ACTUAL_3'] < 10000000 ? 3 : -3"},
             "xOffset": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? -3 : 3"},
             "yOffset": -6,
             "size": {"expr": "TextSize"} 
           },
           "encoding": {
-            "text": {"field": "ACTUAL", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-            "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL_3", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
+            "x": {"field": "ACTUAL_3", "type": "quantitative", "axis": null}
           }
         },
         {
-          // plan text
+          // plan_3 text
           "description": "target label",
           "mark": {
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            "color": {"expr": "datum['ACTUAL_vs_TARGET']>1? '#808080': '#808080'"},
+            "color": {"expr": "datum['ACTUAL_vs_TARGET_3']>1? '#808080': '#808080'"},
             "align": "left",
-            "yOffset": {"expr": "datum['ACTUAL_vs_TARGET']<1 ? 0 : -18"},
+            "yOffset": {"expr": "datum['ACTUAL_vs_TARGET_3']<1 ? 0 : -18"},
             "xOffset": 3,
             "size": {"expr": "TextSize2"} 
           },
           "encoding": {
-            "text": {"field": "plan", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
-            "x": {"field": "plan", "type": "quantitative", "axis": null},
+            "text": {"field": "plan_3", "format": "#,##0,,.0M'", "formatType": "pbiFormat"},
+            "x": {"field": "plan_3", "type": "quantitative", "axis": null},
            "tooltip": [
               {
-              "field": "ZONE_DESC",
+              "field": "BRANCH_DESC",
               "type": "nominal",
               "title": "נציגות"
               },                 
               {
-              "field": "plan_2",
+              "field": "plan_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "יעד מרווח"
               },
               {
-              "field": "ACTUAL_2",
+              "field": "ACTUAL_4",
               "type": "quantitative",
               "format": "#,#0.00'",          
               "formatType": "pbiFormat",
               "title": "מרווח"
               },
               {
-              "field": "ACTUAL_vs_TARGET_2",
+              "field": "ACTUAL_vs_TARGET_4",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
               "title": "ציון מרווח"
               },
               {
-              "field": "plan",
+              "field": "plan_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "יעד ביצוע"
               },
               {
-              "field": "ACTUAL",
+              "field": "ACTUAL_3",
               "type": "quantitative",
               "format": "#,##0,,.00M'",          
               "formatType": "pbiFormat",
               "title": "ביצוע"
               },
               {
-              "field": "ACTUAL_vs_TARGET",
+              "field": "ACTUAL_vs_TARGET_3",
               "type": "quantitative",
               "format": "#,#0.0%'",          
               "formatType": "pbiFormat",
@@ -641,30 +641,30 @@
           }
         },
         {
-          // ACTUAL_vs_TARGET text
-          "description": "ACTUAL_vs_TARGET label",
+          // ACTUAL_vs_TARGET_3 text
+          "description": "ACTUAL_vs_TARGET_3 label",
           "mark": {
             "type": "text",
             "font": "Segoe UI",
             "fontWeight": "bold",
-            //"color": {"expr": "datum['ACTUAL']> 10000000? datum['ACTUAL_vs_TARGET']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
-            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
-            //"align": {"expr": "datum['ACTUAL'] < 10000000 ? 'left' : 'right'"},
+            //"color": {"expr": "datum['ACTUAL_3']> 10000000? datum['ACTUAL_vs_TARGET_3']>1? '#FFFFFF': '#70BBFF' : '#FFFFFF00'"},
+            "color": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? (datum['ACTUAL_vs_TARGET_3']>1? '#FFFFFF' : '#70BBFF') : '#FFFFFF00'"},
+            //"align": {"expr": "datum['ACTUAL_3'] < 10000000 ? 'left' : 'right'"},
             "align": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? 'right' : 'left'"},
-            //"xOffset": {"expr": "datum['ACTUAL'] < 10000000 ? 3 : -3"},
+            //"xOffset": {"expr": "datum['ACTUAL_3'] < 10000000 ? 3 : -3"},
             "xOffset": {"expr": "datum.BAR_PCT_RIGHT >= minTextPctRight ? -3 : 3"},
             "yOffset": 7,
             "size": {"expr": "TextSize2"} 
           },
           "encoding": {
-            "text": {"field": "ACTUAL_vs_TARGET", "format": "##0.0%'", "formatType": "pbiFormat"},
-            "x": {"field": "ACTUAL", "type": "quantitative", "axis": null}
+            "text": {"field": "ACTUAL_vs_TARGET_3", "format": "##0.0%'", "formatType": "pbiFormat"},
+            "x": {"field": "ACTUAL_3", "type": "quantitative", "axis": null}
           }
         }
       ],
       "encoding": {
         "y": {
-          "field": "ZONE_DESC",
+          "field": "BRANCH_DESC",
           "type": "nominal",
           "title": null,
           "sort": {"field": "SORT_BY 2" , "order": "descending"},
