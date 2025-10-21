@@ -1,1 +1,20 @@
-https://bankleumi-co-il.zoom.us/j/69396723278?pwd=FjRodhRrG5oTDf2sy0Y1WeaOdG6QUb.1
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "vconcat": [
+    {
+      // כאן נכנס הקוד הראשון שלך בדיוק כמו שהוא
+    },
+    {
+      // כאן נכנס הקוד השני שלך בדיוק כמו שהוא
+    }
+  ],
+  "resolve": {
+    "scale": {
+      "x": "shared",   // ציר X משותף לשני הגרפים
+      "y": "independent" // צירי Y עצמאיים
+    }
+  },
+  "config": {
+    "view": {"stroke": null}
+  }
+}
