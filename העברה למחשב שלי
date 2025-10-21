@@ -2,16 +2,151 @@
   "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
   "vconcat": [
     {
-      // כאן נכנס הקוד הראשון שלך בדיוק כמו שהוא
+      // ----- קוד ראשון (העליון) -----
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "spacing": -5,
+      "config": {
+        "title": {
+          "font": "Segoe UI",
+          "fontSize": 16,
+          "fontWeight": "bold"
+        }
+      },
+      "params": [
+        {"name": "barheight", "value": 30},
+        {"name": "TextSize", "value": 15},
+        {"name": "TextSize2", "value": 13},
+        {"name": "minTextPctLeft", "value": 0.18},
+        {"name": "minTextPctRight", "value": 0.18},
+        {"name": "sort_field", "expr": "data('dataset')[0].Sort_By"}
+      ],
+      "data": {"name": "dataset"},
+      "hconcat": [
+        /* --------- LEFT (mirror, responsive, no Y axis) --------- */
+        // --- התוכן המלא של החלק השמאלי (מרווח) נשמר כמו אצלך ---
+        {
+          "title": {"text": "מרווח", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold"},
+          "transform": [
+            {"calculate": "-datum['ACTUAL_4']", "as": "NEG_ACTUAL_4"},
+            {"calculate": "-datum['plan_4']", "as": "NEG_plan_4"},
+            {"calculate": "datum['ACTUAL_vs_TARGET_4']", "as": "AVT2"},
+            {
+              "joinaggregate": [
+                {"op": "max", "field": "ACTUAL_4", "as": "MaxActual2"},
+                {"op": "max", "field": "plan_4", "as": "MaxPlan2"}
+              ]
+            },
+            {"calculate": "datum.MaxActual2 > datum.MaxPlan2 ? -datum.MaxActual2 : -datum.MaxPlan2", "as": "GRID_XMIN_L"},
+            {"calculate": "datum.MaxActual2 > datum.MaxPlan2 ? datum.MaxActual2 : datum.MaxPlan2", "as": "GRID_XMAX_L"},
+            {"calculate": "datum['ACTUAL_4'] / datum.GRID_XMAX_L", "as": "BAR_PCT_LEFT"}
+          ],
+          "width": "container",
+          "height": {"step": 40},
+          "layer": [/* ...כל שכבותיך כבקוד המקורי... */],
+          "encoding": {
+            "y": {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": null,
+              "sort": {"field": "SORT_BY 2", "order": "descending"},
+              "axis": {"labels": false, "grid": true, "domain": false}
+            }
+          }
+        },
+        /* --------- RIGHT (responsive, keeps Y axis) --------- */
+        {
+          "title": {"text": "ביצוע", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold"},
+          "transform": [
+            {
+              "joinaggregate": [
+                {"op": "max", "field": "ACTUAL_3", "as": "MaxActual"},
+                {"op": "max", "field": "plan_3", "as": "Maxplan"}
+              ]
+            },
+            {"calculate": "datum['ACTUAL_vs_TARGET_3']", "as": "AVT"},
+            {"calculate": "datum.MaxActual > datum.Maxplan ? datum.MaxActual : datum.Maxplan", "as": "GRID_XMAX_R"},
+            {"calculate": "datum['ACTUAL_3'] / datum.GRID_XMAX_R", "as": "BAR_PCT_RIGHT"}
+          ],
+          "width": "container",
+          "height": {"step": 40},
+          "layer": [/* ...שכבות חלק ימין בדיוק כמו אצלך... */],
+          "encoding": {
+            "y": {
+              "field": "ZONE_DESC",
+              "type": "nominal",
+              "title": null,
+              "sort": {"field": "SORT_BY 2", "order": "descending"},
+              "axis": {"labels": false, "grid": true, "domain": false}
+            }
+          }
+        }
+      ],
+      "view": {"stroke": null}
     },
     {
-      // כאן נכנס הקוד השני שלך בדיוק כמו שהוא
+      // ----- קוד שני (התחתון) -----
+      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+      "spacing": -5,
+      "config": {
+        "title": {
+          "font": "Segoe UI",
+          "fontSize": 16,
+          "fontWeight": "bold"
+        }
+      },
+      "params": [
+        {"name": "barheight", "value": 30},
+        {"name": "TextSize", "value": 15},
+        {"name": "TextSize2", "value": 13},
+        {"name": "minTextPctLeft", "value": 0.18},
+        {"name": "minTextPctRight", "value": 0.18},
+        {"name": "sort_field", "expr": "data('dataset')[0].Sort_By"}
+      ],
+      "data": {"name": "dataset"},
+      "hconcat": [
+        /* --------- LEFT (mirror, responsive, no Y axis) --------- */
+        // --- כל חלק שמאלי (BRANCH_DESC) מהקוד השני נשמר כמו שהוא ---
+        {
+          "title": {"text": "מרווח", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold"},
+          "transform": [/* ... */],
+          "width": "container",
+          "height": {"step": 40},
+          "layer": [/* ... */],
+          "encoding": {
+            "y": {
+              "field": "BRANCH_DESC",
+              "type": "nominal",
+              "title": null,
+              "sort": {"field": "SORT_BY 2", "order": "descending"},
+              "axis": {"labels": false, "grid": true, "domain": false}
+            }
+          }
+        },
+        /* --------- RIGHT (responsive, keeps Y axis) --------- */
+        {
+          "title": {"text": "ביצוע", "anchor": "middle", "color": "#B3B3B3", "font": "Segoe UI", "fontWeight": "bold"},
+          "transform": [/* ... */],
+          "width": "container",
+          "height": {"step": 40},
+          "layer": [/* ... */],
+          "encoding": {
+            "y": {
+              "field": "BRANCH_DESC",
+              "type": "nominal",
+              "title": null,
+              "sort": {"field": "SORT_BY 2", "order": "descending"},
+              "axis": {"labels": false, "grid": true, "domain": false}
+            }
+          }
+        }
+      ],
+      "view": {"stroke": null}
     }
   ],
   "resolve": {
     "scale": {
-      "x": "shared",   // ציר X משותף לשני הגרפים
-      "y": "independent" // צירי Y עצמאיים
+      "x": "shared",
+      "y": "independent"
     }
   },
   "config": {
