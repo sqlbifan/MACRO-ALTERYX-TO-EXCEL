@@ -2,341 +2,165 @@
   "data": {"name": "dataset"},
   "transform": [
     {
-    "joinaggregate": [
-      {
-        "op": "max",
-        "field": "Sales",
-        "as": "MaxActual"
-      }]},
-      {
-    "joinaggregate": [
-      {
-        "op": "max",
-        "field": "Region",
-        "as": "Maxplan"
-      }]}
-    ],
-    "width": "290",   
-    "height": {"step": 40}, 
- 
-  
+      "joinaggregate": [
+        {"op": "max", "field": "Sales", "as": "MaxActual"},
+        {"op": "max", "field": "Region", "as": "Maxplan"}
+      ]
+    },
+    {
+      "joinaggregate": [
+        {"op": "sum", "field": "Sales", "as": "Sales_sum"},
+        {"op": "sum", "field": "Region", "as": "Region_sum"}
+      ],
+      "groupby": ["Category"]
+    }
+  ],
+  "width": 290,
+  "height": {"step": 40},
   "layer": [
     {
-          "name": "y_labels_clickable",
-          "mark": {
-            "type": "text",
-            "font": "Segoe UI",
-            "fontWeight": "normal",
-            "size": 15,
-            "align": "right",
-            "baseline": "middle",
-            "dx": 6,
-            "cursor": "pointer"
-          },
-          "encoding": {
-            "y": { "field": "Category", "type": "nominal", "bandPosition": 0.5 },
-            "x": { "value": -150, "type": "quantitative" },  // מציב את הטקסט ליד שפת הגרף
-            "text": { "field": "Category" },
-            "tooltip": [{ "field": "Category", "type": "nominal", "title": "קטגוריה" }]
-          }
-        },
-    //target bar
-    {
-      
-      
-      "description": "target bar",
+      "name": "y_labels_clickable",
       "mark": {
-        "type": "rule",
-        "height": 25,
-        "point": {
-          "yOffset": -8,
-          "size": 0.003
-        },
-          "color": "#E6E6E6",
-        "strokeWidth": 8
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "normal",
+        "size": 15,
+        "align": "right",
+        "baseline": "middle",
+        "dx": 6,
+        "cursor": "pointer"
       },
       "encoding": {
-        "y": {
-            "field": "Category",
-            "type": "nominal",
-            "axis": {
-              "grid": true,
-              "gridColor": "#f0efef",
-              "gridOpacity": 0.5,
-              "ticks": true,
-              "tickColor": "#f0efef",
-              "tickBand": "extent",
-              "tickSize": 80,
-              "title": null,
-              "labelFontSize": 15,
-              "labelPadding": 50
-            }
-        },
-        "x": {
-          "aggregate": "min",
-          "field": "Region",
-          "type": "quantitative",
-          "axis": 
-          {
-              "grid": true,
-              "gridColor": "#c3c3c3",
-              "title": null,
-              "labels": false,
-              "labelFontSize": 10,
-              "format": "$~s",
-              "tickCount": 5
-            }
-        },
-        "x2": {
-            "aggregate": "max",
-            "field": "Sales"
-          },
-        "opacity": {
-            "condition": {
-              "test": {
-                "field": "__selected__",
-                "equal": "off"
-              },
-              "value": 0.3
-            },
-            "value": 1
-          }
+        "y": {"field": "Category", "type": "nominal", "bandPosition": 0.5},
+        "x": {"value": -150, "type": "quantitative"},
+        "text": {"field": "Category"},
+        "tooltip": [{"field": "Category", "type": "nominal", "title": "קטגוריה"}]
       }
     },
-    //actual bar
+
     {
-      
-      "description": "actual bar",
-      "mark": {
-          "type": "point",
-          "tooltip": true,
-          "size": 150,
-          "color": {
-          "expr": "datum['RATIO'] < 1 ? '#c7c6c6': '#c7c6c6'"
-        }
-        },
-          "encoding": {
-          "y": {
-            "field": "Category",
-            "type": "nominal"
-          },
-          "x": {
-            "aggregate": "sum",
-            "field": "Sales",
-            "type": "quantitative"
-          },
-          "tooltip": [
-            {
-              "field": "MADAD",
-              "type": "nominal",
-              "title": "מדד"
-            }, 
-            {
-              "field": "Category",
-              "type": "nominal",
-              "title": "מרחב"
-            },         
-            {
-              "field": "Region",
-              "type": "quantitative",
-              "format": "#,#0.00'",          
-              "formatType": "pbiFormat",
-              "title": "יעד"
-            },
-            {
-              "field": "Sales",
-              "type": "quantitative",
-              "format": "#,#0.00'",          
-              "formatType": "pbiFormat",
-              "title": "ביצוע"
-            }
-          ],
-         
-          "opacity": {
-            "condition": {
-              "test": {
-                "field": "__selected__",
-                "equal": "off"
-              },
-              "value": 0.3
-            },
-            "value": 1
+      "description": "target bar",
+      "mark": {"type": "rule", "height": 25, "color": "#E6E6E6", "strokeWidth": 8},
+      "encoding": {
+        "y": {
+          "field": "Category",
+          "type": "nominal",
+          "axis": {
+            "grid": true,
+            "gridColor": "#f0efef",
+            "gridOpacity": 0.5,
+            "ticks": true,
+            "tickColor": "#f0efef",
+            "tickBand": "extent",
+            "tickSize": 80,
+            "title": null,
+            "labelFontSize": 15,
+            "labelPadding": 50
           }
-        }
+        },
+        "x": {"field": "Region_sum", "type": "quantitative"},
+        "x2": {"field": "Sales_sum", "type": "quantitative"}
+      }
     },
-    //actual TEXT
+
     {
       "description": "actual bar",
       "mark": {
-          "type": "text",
-          "font": "Segoe UI",
-          "fontWeight": "bold",
-          "size": 15,
-          "tooltip": false,
-          "xOffset": 30,
-          "color": {
-          "expr": "datum.Sales < datum.Region ? '#F87460': '#c7c6c6'"
-        } 
-        },
-          "encoding": {
-          "text": {
-          "field": "Sales",
-          "type": "quantitative",
-          "format": "#,#0.00'",
-          //"format": "#,##0,,.0M'",
-          "formatType": "pbiFormat"
-          },
-          
-          "x": {
-            "aggregate": "sum",
-            "field": "Sales",
-            "type": "quantitative"
-          }
-          
-        }
-    },
-    
-    //target mark title
-    {
-      "description": "actual bar",
-      "mark": {
-          "type": "text",
-          "font": "Segoe UI",
-          "fontWeight": "bold",
-          "size": 15,
-          "tooltip": false,
-          "xOffset": {
-          "expr": "datum['RATIO'] < 1 ? -30 : 30"
-        },
-          "color": {
-          "expr": "datum['RATIO'] < 1 ? '#c7c6c6': '#c7c6c6'"
-        } 
-        },
-          "encoding": {
-          "text": {
-          "field": "Region",
-          "type": "quantitative",
-          "format": "#,#0.00'",
-          //"format": "#,##0,,.0M'",
-          "formatType": "pbiFormat"
-          },
-          
-          "x": {
-            "aggregate": "sum",
-            "field": "Region",
-            "type": "quantitative"
-          }
-          
-        }
-    },
-    //target mark
- {
-        
-        "mark": {
-            "type": "rule",         
-            "point": {
-              "shape": "M0 0h1v15h-1z",
-              "yOffset": -16,
-              "size": 17,
-              "color": "#cccccc"
-            },
-            "stroke": "#FFFFFF00"
-          },
-        "encoding": {
-          "y": {
-            "field": "Category",
-            "type": "nominal"
-          },
-          "x": {
-            "aggregate": "sum",
-            "field": "Region",
-            "type": "quantitative"
-          },
-          "tooltip": [
-            {
-              "field": "MADAD",
-              "type": "nominal",
-              "title": "מדד"
-            }, 
-            {
-              "field": "Category",
-              "type": "nominal",
-              "title": "מרחב"
-            },                 
-            {
-              "field": "Region",
-              "type": "quantitative",
-              "format": "#,#0.00'",          
-              "formatType": "pbiFormat",
-              "title": "יעד"
-            },
-            {
-              "field": "Sales",
-              "type": "quantitative",
-              "format": "#,#0.00'",          
-              "formatType": "pbiFormat",
-              "title": "ביצוע"
-            }
-          ],
-         
-          "opacity": {
-            "condition": {
-              "test": {
-                "field": "__selected__",
-                "equal": "off"
-              },
-              "value": 0.3
-            },
-            "value": 1
-          }
-        }
+        "type": "point",
+        "size": 150,
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#c7c6c6' : '#c7c6c6'"}
       },
-      {
-        
-        "mark": {
-          "type": "text",
-          "font": "Segoe UI",
-          "fontWeight": "bold",
-          "size": 15,
-          "xOffset": {
-          "expr": "datum['RATIO'] < 1 ? 30 : 30"
+      "encoding": {
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"field": "Sales_sum", "type": "quantitative"}
+      }
+    },
+
+    {
+      "description": "actual TEXT",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "tooltip": false,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
+        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#F87460' : '#15B29E'"}
+      },
+      "encoding": {
+        "text": {
+          "field": "Sales_sum",
+          "type": "quantitative",
+          "format": "#,#0.00'",
+          "formatType": "pbiFormat"
         },
-          "color": {
-          "expr": "datum['RATIO'] < 1 ? '#ff7070': '#15B29E'"
-        }
+        "x": {"field": "Sales_sum", "type": "quantitative"},
+        "y": {"field": "Category", "type": "nominal"}
+      }
+    },
+
+    {
+      "description": "target mark title",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "tooltip": false,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
+        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
+        "color": "#c7c6c6"
+      },
+      "encoding": {
+        "text": {
+          "field": "Region_sum",
+          "type": "quantitative",
+          "format": "#,#0.00'",
+          "formatType": "pbiFormat"
         },
-        "encoding": {
-          "text": {
+        "x": {"field": "Region_sum", "type": "quantitative"},
+        "y": {"field": "Category", "type": "nominal"}
+      }
+    },
+
+    {
+      "description": "target mark",
+      "mark": {
+        "type": "rule",
+        "point": {
+          "shape": "M0 0h1v15h-1z",
+          "yOffset": -16,
+          "size": 17,
+          "color": "#cccccc"
+        },
+        "stroke": "#FFFFFF00"
+      },
+      "encoding": {
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"field": "Region_sum", "type": "quantitative"}
+      }
+    },
+
+    {
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#ff7070' : '#15B29E'"}
+      },
+      "encoding": {
+        "text": {
           "field": "RATIO",
           "format": "#,#0.0%'",
-          //"format": "#,##0,,.0M'",
           "formatType": "pbiFormat"
         },
-          "y": {
-            "field": "Category",
-            "type": "nominal"
-          },
-           "x": { "value":-100},
-          
-         
-          "opacity": {
-            "condition": {
-              "test": {
-                "field": "__selected__",
-                "equal": "off"
-              },
-              "value": 0.3
-            },
-            "value": 1
-          }
-        }
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"value": -100}
       }
-    //actual label
-    
-    //target label
-    
-    //ACTUAL_vs_TARGET label
-
+    }
   ],
   "encoding": {
     "y": {
@@ -344,23 +168,15 @@
       "type": "nominal",
       "axis": {
         "labels": false,
-        "labelFont": "Segoe UI"
-        ,"labelFontSize": 15
-        ,"labelFontWeight": "normal",
+        "labelFont": "Segoe UI",
+        "labelFontSize": 15,
+        "labelFontWeight": "normal",
         "labelAlign": "right",
         "orient": "left"
-        },
+      },
       "title": null,
-      "sort": {
-        "op": "sum",
-        "field": "RATIO",
-        "order": "descending"
-      }
+      "sort": {"op": "sum", "field": "RATIO", "order": "descending"}
     },
-    "x": {
-      "field": "Sales",
-      "type": "quantitative",
-      "axis": null
-    }
+    "x": {"field": "Sales_sum", "type": "quantitative", "axis": null}
   }
 }
