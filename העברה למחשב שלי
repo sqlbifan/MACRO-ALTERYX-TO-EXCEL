@@ -1,1 +1,66 @@
-[Error] Duplicate signal name: "Selector_tuple"
+{
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "data": {
+    "values": [
+      {"NAME": "A", "URL": "https://example.com/URL1.png", "x": 1},
+      {"NAME": "B", "URL": "https://example.com/URL2.png", "x": 0}
+    ]
+  },
+  "params": [
+    {
+      "name": "selectionParam",
+      "value": "A",
+      "bind": {
+        "input": "select",
+        "options": ["A", "B"],
+        "name": "בחר:"
+      }
+    }
+  ],
+  "width": 150,
+  "height": 80,
+  "layer": [
+    {
+      "mark": {
+        "type": "image",
+        "width": 60,
+        "height": 60,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "x": {"field": "x", "type": "ordinal"},
+        "y": {"value": 0},
+        "url": {"field": "URL"},
+        "opacity": {
+          "condition": {"test": "datum.NAME == selectionParam", "value": 1},
+          "value": 0.4
+        },
+        "tooltip": {"field": "NAME"}
+      },
+      "selection": {
+        "selectFilter": {
+          "type": "point",
+          "on": "click",
+          "fields": ["NAME"],
+          "clear": false,
+          "bind": "scales"
+        }
+      }
+    },
+    {
+      "transform": [
+        {"filter": "datum.NAME == selectionParam"}
+      ],
+      "mark": {
+        "type": "text",
+        "yOffset": 40,
+        "fontWeight": "bold",
+        "size": 12
+      },
+      "encoding": {
+        "x": {"aggregate": "mean", "field": "x"},
+        "text": {"value": "✓ נבחר"}
+      }
+    }
+  ]
+}
