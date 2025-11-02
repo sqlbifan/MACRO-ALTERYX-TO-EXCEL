@@ -1,20 +1,4 @@
-{
-  "data": {"name": "dataset"},
-  "transform": [
-    {
-      "joinaggregate": [
-        {"op": "max", "field": "Measure_Switcher", "as": "max"},
-        {"op": "min", "field": "Measure_Switcher", "as": "min"}
-      ]
-    },
-    {"calculate": "datum.max * 1.5", "as": "max"},
-    {"calculate": "datum.min * 0.5", "as": "min"}
-  ],
-  "params": [
-    {"name": "max", "expr": "data('data_0')[0]['max']"},
-    {"name": "min", "expr": "data('data_0')[0]['min']"}
-  ],
-  "layer": [
+"layer": [
     {
       "encoding": {
         "x": {
@@ -29,12 +13,14 @@
         "y": {
           "field": "Measure_Switcher",
           "type": "quantitative",
-          "axis": {
+          //"scale": {"domain": {"expr": "[0.1,2]"}},
+           "axis": {
             "format": "#,#0%",
             "formatType": "pbiFormat",
             "labelAngle": 0,
             "labelColor": "#c8c8c9",
             "labelFontSize": 12
+            
           }
         }
       },
@@ -44,56 +30,104 @@
             "type": "area",
             "interpolate": "linear",
             "opacity": 0.3,
-            "line": {"color": "#4D8FF7"},
+            "line": {
+              "color": "#4D8FF7"
+            },
             "color": {
-              "x1": 1, "y1": 1, "x2": 1, "y2": 0,
+              "x1": 1,
+              "y1": 1,
+              "x2": 1,
+              "y2": 0,
               "gradient": "linear",
               "stops": [
-                {"offset": 0, "color": "#fff"},
-                {"offset": 0.3, "color": "#fff"},
-                {"offset": 1, "color": "#4D8FF7"}
+                {
+                  "offset": 0,
+                  "color": "#fff"
+                },
+                {
+                  "offset": 0.3,
+                  "color": "#fff"
+                },
+                {
+                  "offset": 1,
+                  "color": "#4D8FF7"
+                }
               ]
             }
           }
         },
+        // הוספה: שכבת תוויות הנתונים הקבועות
         {
-          "params": [{
-            "name": "label",
-            "select": {"type": "point", "encodings": ["x"], "nearest": true, "on": "mouseover"}
-          }],
-          "mark": {"type": "point", "tooltip": true, "color": "#070762"},
-          "encoding": {
-            "opacity": {
-              "condition": {"param": "label", "empty": false, "value": 1},
-              "value": 0
-            },
-            "tooltip": [
-              {"field": "MONTH_START2", "type": "ordinal", "title": "חודש", "format": "MM/yyyy", "formatType": "pbiFormat"},
-              {"field": "Measure_Switcher", "type": "quantitative", "title": " ", "format": "#,#0%", "formatType": "pbiFormat"}
-            ]
-          }
-        },
-
-        🔹 {
           "mark": {
             "type": "text",
-            "align": "center",
-            "baseline": "bottom",
-            "dy": -5,
-            "color": "#070762",
-            "fontSize": 12
+            "align": "left", // יישור הטקסט (אפשר לשנות)
+            "dy": -10,      // היסט אנכי מעל הנקודה
+            "fontSize": 10,  // גודל גופן
+            "color": "#4D8FF7" // צבע הטקסט
           },
           "encoding": {
-            "x": {"field": "MONTH_START2", "type": "ordinal"},
-            "y": {"field": "Measure_Switcher", "type": "quantitative"},
             "text": {
               "field": "Measure_Switcher",
               "type": "quantitative",
-              "format": "#,#0%"
+              "format": ".1%", // פורמט רצוי (לדוגמה, אחוז אחד אחרי הנקודה)
+              "formatType": "pbiFormat"
+            },
+            "x": {
+              "field": "MONTH_START2",
+              "type": "ordinal"
+            },
+            "y": {
+              "field": "Measure_Switcher",
+              "type": "quantitative"
             }
+          }
+        },
+        {
+          "params": [
+            {
+              "name": "label",
+              "select": {
+                "type": "point",
+                "encodings": [
+                  "x"
+                ],
+                "nearest": true,
+                "on": "mouseover"
+              }
+            }
+          ],
+          "mark": {
+            "type": "point",
+            "tooltip": true,
+            "color": "#070762"
+          },
+          "encoding": {
+            "opacity": {
+              "condition": {
+                "param": "label",
+                "empty": false,
+                "value": 1
+              },
+              "value": 0
+            },
+            "tooltip": [
+              {
+                "field": "MONTH_START2",
+                "type": "ordinal",
+                "title": "חודש",
+                "format": "MM/yyyy",
+                "formatType": "pbiFormat"
+              },
+              {
+                "field": "Measure_Switcher",
+                "type": "quantitative",
+                "title": " ",
+                "format": "#,#0%",
+                "formatType": "pbiFormat"
+              }
+            ]
           }
         }
       ]
-    }
-  ]
-}
+    },
+    // ... המשך הקוד שלך (שכבת ה-rule וה-text המותנית הקיימת)
