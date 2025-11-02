@@ -1,182 +1,173 @@
 {
-  "data": {"name": "dataset"},
+  "data": {
+    "name": "dataset"
+  },
   "transform": [
     {
       "joinaggregate": [
-        {"op": "max", "field": "Sales", "as": "MaxActual"},
-        {"op": "max", "field": "Region", "as": "Maxplan"}
+        {"op": "max", "field": "Measure_Switcher", "as": "max"},
+        {"op": "min", "field": "Measure_Switcher", "as": "min"}
+      ]
+    },
+    {"calculate": "datum.max * 1.5", "as": "max"},
+    {"calculate": "datum.min * 0.5", "as": "min"}
+  ],
+  "params": [
+    {"name": "max", "expr": "data('data_0')[0]['max']"},
+    {"name": "min", "expr": "data('data_0')[0]['min']"}
+  ],
+  "layer": [
+    {
+      "encoding": {
+        "x": {
+          "field": "MONTH_START2",
+          "type": "ordinal",
+          "axis": {
+            "format": "MM-yy",
+            "formatType": "pbiFormat",
+            "labelAngle": 0
+          }
+        },
+        "y": {
+          "field": "Measure_Switcher",
+          "type": "quantitative",
+          //"scale": {"domain": {"expr": "[0.1,2]"}},
+           "axis": {
+            "format": "#,#0%",
+            "formatType": "pbiFormat",
+            "labelAngle": 0,
+            "labelColor": "#c8c8c9",
+            "labelFontSize": 12
+            
+          }
+        }
+      },
+      "layer": [
+        {
+          "mark": {
+            "type": "area",
+            "interpolate": "linear",
+            "opacity": 0.3,
+            "line": {
+              "color": "#4D8FF7"
+            },
+            "color": {
+              "x1": 1,
+              "y1": 1,
+              "x2": 1,
+              "y2": 0,
+              "gradient": "linear",
+              "stops": [
+                {
+                  "offset": 0,
+                  "color": "#fff"
+                },
+                {
+                  "offset": 0.3,
+                  "color": "#fff"
+                },
+                {
+                  "offset": 1,
+                  "color": "#4D8FF7"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "params": [
+            {
+              "name": "label",
+              "select": {
+                "type": "point",
+                "encodings": [
+                  "x"
+                ],
+                "nearest": true,
+                "on": "mouseover"
+              }
+            }
+          ],
+          "mark": {
+            "type": "point",
+            "tooltip": true,
+            "color": "#070762"
+          },
+          "encoding": {
+            "opacity": {
+              "condition": {
+                "param": "label",
+                "empty": false,
+                "value": 1
+              },
+              "value": 0
+            },
+            "tooltip": [
+              {
+                "field": "MONTH_START2",
+                "type": "ordinal",
+                "title": "חודש",
+                "format": "MM/yyyy",
+                "formatType": "pbiFormat"
+              },
+              {
+                "field": "Measure_Switcher",
+                "type": "quantitative",
+                "title": " ",
+                "format": "#,#0%",
+                "formatType": "pbiFormat"
+              }
+            ]
+          }
+        }
       ]
     },
     {
-      "joinaggregate": [
-        {"op": "sum", "field": "Sales", "as": "Sales_sum"},
-        {"op": "sum", "field": "Region", "as": "Region_sum"}
+      "transform": [
+        {
+          "filter": {
+            "param": "label",
+            "empty": false
+          }
+        }
       ],
-      "groupby": ["Category"]
-    }
-  ],
-  "width": 290,
-  "height": {"step": 40},
-  "layer": [
-    {
-      "name": "y_labels_clickable",
-      "mark": {
-        "type": "text",
-        "font": "Segoe UI",
-        "fontWeight": "normal",
-        "size": 15,
-        "align": "right",
-        "baseline": "middle",
-        "dx": 6,
-        "cursor": "pointer"
-      },
-      "encoding": {
-        "y": {"field": "Category", "type": "nominal", "bandPosition": 0.5},
-        "x": {"value": -150, "type": "quantitative"},
-        "text": {"field": "Category"},
-        "tooltip": [{"field": "Category", "type": "nominal", "title": "קטגוריה"}]
-      }
-    },
-
-    {
-      "description": "target bar",
-      "mark": {"type": "rule", "height": 25, "color": "#E6E6E6", "strokeWidth": 8},
-      "encoding": {
-        "y": {
-          "field": "Category",
-          "type": "nominal",
-          "axis": {
-            "grid": true,
-            "gridColor": "#f0efef",
-            "gridOpacity": 0.5,
-            "ticks": true,
-            "tickColor": "#f0efef",
-            "tickBand": "extent",
-            "tickSize": 80,
-            "title": null,
-            "labelFontSize": 15,
-            "labelPadding": 50
+      "layer": [
+        {
+          "mark": {
+            "type": "rule",
+            "color": "gray",
+            "strokeWidth": 0 
+          },
+          "encoding": {
+            "x": {
+              "type": "temporal",
+              "field": "MONTH_START2",
+              "aggregate": "min"
+            }
           }
         },
-        "x": {"field": "Region_sum", "type": "quantitative"},
-        "x2": {"field": "Sales_sum", "type": "quantitative"}
-      }
-    },
-
-    {
-      "description": "actual bar",
-      "mark": {
-        "type": "point",
-        "size": 150,
-        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#c7c6c6' : '#c7c6c6'"}
-      },
-      "encoding": {
-        "y": {"field": "Category", "type": "nominal"},
-        "x": {"field": "Sales_sum", "type": "quantitative"}
-      }
-    },
-
-    {
-      "description": "actual TEXT",
-      "mark": {
-        "type": "text",
-        "font": "Segoe UI",
-        "fontWeight": "bold",
-        "size": 15,
-        "tooltip": false,
-        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
-        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
-        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#F87460' : '#15B29E'"}
-      },
-      "encoding": {
-        "text": {
-          "field": "Sales_sum",
-          "type": "quantitative",
-          "format": "#,#0.00'",
-          "formatType": "pbiFormat"
-        },
-        "x": {"field": "Sales_sum", "type": "quantitative"},
-        "y": {"field": "Category", "type": "nominal"}
-      }
-    },
-
-    {
-      "description": "target mark title",
-      "mark": {
-        "type": "text",
-        "font": "Segoe UI",
-        "fontWeight": "bold",
-        "size": 15,
-        "tooltip": false,
-        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
-        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
-        "color": "#c7c6c6"
-      },
-      "encoding": {
-        "text": {
-          "field": "Region_sum",
-          "type": "quantitative",
-          "format": "#,#0.00'",
-          "formatType": "pbiFormat"
-        },
-        "x": {"field": "Region_sum", "type": "quantitative"},
-        "y": {"field": "Category", "type": "nominal"}
-      }
-    },
-
-    {
-      "description": "target mark",
-      "mark": {
-        "type": "rule",
-        "point": {
-          "shape": "M0 0h1v15h-1z",
-          "yOffset": -16,
-          "size": 17,
-          "color": "#cccccc"
-        },
-        "stroke": "#FFFFFF00"
-      },
-      "encoding": {
-        "y": {"field": "Category", "type": "nominal"},
-        "x": {"field": "Region_sum", "type": "quantitative"}
-      }
-    },
-
-    {
-      "mark": {
-        "type": "text",
-        "font": "Segoe UI",
-        "fontWeight": "bold",
-        "size": 15,
-        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
-        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#ff7070' : '#15B29E'"}
-      },
-      "encoding": {
-        "text": {
-          "field": "RATIO",
-          "format": "#,#0.0%'",
-          "formatType": "pbiFormat"
-        },
-        "y": {"field": "Category", "type": "nominal"},
-        "x": {"value": -100}
-      }
+        {
+          "encoding": {
+            "text": {
+              "type": "quantitative",
+              "field": "Measure_Switcher"
+            },
+            "x": {
+              "type": "temporal",
+              "field": "MONTH_START2"
+            },
+            "y": {
+              "type": "quantitative",
+              "field": "Measure_Switcher"
+              //,"scale": {"domain": {"expr": "[min,max]"}}
+            }
+          },
+          "layer": [
+          
+          
+          ]
+        }
+      ]
     }
-  ],
-  "encoding": {
-    "y": {
-      "field": "Category",
-      "type": "nominal",
-      "axis": {
-        "labels": false,
-        "labelFont": "Segoe UI",
-        "labelFontSize": 15,
-        "labelFontWeight": "normal",
-        "labelAlign": "right",
-        "orient": "left"
-      },
-      "title": null,
-      "sort": {"op": "sum", "field": "RATIO", "order": "descending"}
-    },
-    "x": {"field": "Sales_sum", "type": "quantitative", "axis": null}
-  }
+  ]
 }
