@@ -1,4 +1,22 @@
-"layer": [
+{
+  "data": {
+    "name": "dataset"
+  },
+  "transform": [
+    {
+      "joinaggregate": [
+        {"op": "max", "field": "Measure_Switcher", "as": "max"},
+        {"op": "min", "field": "Measure_Switcher", "as": "min"}
+      ]
+    },
+    {"calculate": "datum.max * 1.5", "as": "max"},
+    {"calculate": "datum.min * 0.5", "as": "min"}
+  ],
+  "params": [
+    {"name": "max", "expr": "data('data_0')[0]['max']"},
+    {"name": "min", "expr": "data('data_0')[0]['min']"}
+  ],
+  "layer": [
     {
       "encoding": {
         "x": {
@@ -56,20 +74,21 @@
             }
           }
         },
-        // הוספה: שכבת תוויות הנתונים הקבועות
+        // 🌟 שכבת תוויות הנתונים הקבועות
         {
           "mark": {
             "type": "text",
-            "align": "left", // יישור הטקסט (אפשר לשנות)
-            "dy": -10,      // היסט אנכי מעל הנקודה
-            "fontSize": 10,  // גודל גופן
-            "color": "#4D8FF7" // צבע הטקסט
+            "align": "center", // יישור: ניתן לשנות ל-"left" או "right"
+            "baseline": "bottom", // ממוקם מתחת לקו, נזיז אותו עם dy
+            "dy": -5, // הזזה של 5 פיקסלים מעל הנקודה
+            "fontSize": 10,
+            "color": "#070762" // צבע כהה עבור הטקסט
           },
           "encoding": {
             "text": {
               "field": "Measure_Switcher",
               "type": "quantitative",
-              "format": ".1%", // פורמט רצוי (לדוגמה, אחוז אחד אחרי הנקודה)
+              "format": "#,#0.0%", // פורמט לדוגמה: אחוז עם ספרה אחת אחרי הנקודה
               "formatType": "pbiFormat"
             },
             "x": {
@@ -82,6 +101,7 @@
             }
           }
         },
+        // שכבת הנקודות וה-Tooltip (כפי שהייתה)
         {
           "params": [
             {
@@ -130,4 +150,53 @@
         }
       ]
     },
-    // ... המשך הקוד שלך (שכבת ה-rule וה-text המותנית הקיימת)
+    // שכבת ה-Rule והטקסט המותנה (כפי שהייתה)
+    {
+      "transform": [
+        {
+          "filter": {
+            "param": "label",
+            "empty": false
+          }
+        }
+      ],
+      "layer": [
+        {
+          "mark": {
+            "type": "rule",
+            "color": "gray",
+            "strokeWidth": 0 
+          },
+          "encoding": {
+            "x": {
+              "type": "temporal",
+              "field": "MONTH_START2",
+              "aggregate": "min"
+            }
+          }
+        },
+        {
+          "encoding": {
+            "text": {
+              "type": "quantitative",
+              "field": "Measure_Switcher"
+            },
+            "x": {
+              "type": "temporal",
+              "field": "MONTH_START2"
+            },
+            "y": {
+              "type": "quantitative",
+              "field": "Measure_Switcher"
+              //,"scale": {"domain": {"expr": "[min,max]"}}
+            }
+          },
+          "layer": [
+          
+          
+          ]
+        }
+      ]
+    }
+  ]
+}
