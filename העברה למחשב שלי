@@ -1,7 +1,5 @@
 {
-  "data": {
-    "name": "dataset"
-  },
+  "data": {"name": "dataset"},
   "transform": [
     {
       "joinaggregate": [
@@ -31,14 +29,12 @@
         "y": {
           "field": "Measure_Switcher",
           "type": "quantitative",
-          //"scale": {"domain": {"expr": "[0.1,2]"}},
-           "axis": {
+          "axis": {
             "format": "#,#0%",
             "formatType": "pbiFormat",
             "labelAngle": 0,
             "labelColor": "#c8c8c9",
             "labelFontSize": 12
-            
           }
         }
       },
@@ -48,124 +44,54 @@
             "type": "area",
             "interpolate": "linear",
             "opacity": 0.3,
-            "line": {
-              "color": "#4D8FF7"
-            },
+            "line": {"color": "#4D8FF7"},
             "color": {
-              "x1": 1,
-              "y1": 1,
-              "x2": 1,
-              "y2": 0,
+              "x1": 1, "y1": 1, "x2": 1, "y2": 0,
               "gradient": "linear",
               "stops": [
-                {
-                  "offset": 0,
-                  "color": "#fff"
-                },
-                {
-                  "offset": 0.3,
-                  "color": "#fff"
-                },
-                {
-                  "offset": 1,
-                  "color": "#4D8FF7"
-                }
+                {"offset": 0, "color": "#fff"},
+                {"offset": 0.3, "color": "#fff"},
+                {"offset": 1, "color": "#4D8FF7"}
               ]
             }
           }
         },
         {
-          "params": [
-            {
-              "name": "label",
-              "select": {
-                "type": "point",
-                "encodings": [
-                  "x"
-                ],
-                "nearest": true,
-                "on": "mouseover"
-              }
-            }
-          ],
-          "mark": {
-            "type": "point",
-            "tooltip": true,
-            "color": "#070762"
-          },
+          "params": [{
+            "name": "label",
+            "select": {"type": "point", "encodings": ["x"], "nearest": true, "on": "mouseover"}
+          }],
+          "mark": {"type": "point", "tooltip": true, "color": "#070762"},
           "encoding": {
             "opacity": {
-              "condition": {
-                "param": "label",
-                "empty": false,
-                "value": 1
-              },
+              "condition": {"param": "label", "empty": false, "value": 1},
               "value": 0
             },
             "tooltip": [
-              {
-                "field": "MONTH_START2",
-                "type": "ordinal",
-                "title": "חודש",
-                "format": "MM/yyyy",
-                "formatType": "pbiFormat"
-              },
-              {
-                "field": "Measure_Switcher",
-                "type": "quantitative",
-                "title": " ",
-                "format": "#,#0%",
-                "formatType": "pbiFormat"
-              }
+              {"field": "MONTH_START2", "type": "ordinal", "title": "חודש", "format": "MM/yyyy", "formatType": "pbiFormat"},
+              {"field": "Measure_Switcher", "type": "quantitative", "title": " ", "format": "#,#0%", "formatType": "pbiFormat"}
             ]
           }
-        }
-      ]
-    },
-    {
-      "transform": [
-        {
-          "filter": {
-            "param": "label",
-            "empty": false
-          }
-        }
-      ],
-      "layer": [
-        {
-          "mark": {
-            "type": "rule",
-            "color": "gray",
-            "strokeWidth": 0 
-          },
-          "encoding": {
-            "x": {
-              "type": "temporal",
-              "field": "MONTH_START2",
-              "aggregate": "min"
-            }
-          }
         },
-        {
-          "encoding": {
-            "text": {
-              "type": "quantitative",
-              "field": "Measure_Switcher"
-            },
-            "x": {
-              "type": "temporal",
-              "field": "MONTH_START2"
-            },
-            "y": {
-              "type": "quantitative",
-              "field": "Measure_Switcher"
-              //,"scale": {"domain": {"expr": "[min,max]"}}
-            }
+
+        🔹 {
+          "mark": {
+            "type": "text",
+            "align": "center",
+            "baseline": "bottom",
+            "dy": -5,
+            "color": "#070762",
+            "fontSize": 12
           },
-          "layer": [
-          
-          
-          ]
+          "encoding": {
+            "x": {"field": "MONTH_START2", "type": "ordinal"},
+            "y": {"field": "Measure_Switcher", "type": "quantitative"},
+            "text": {
+              "field": "Measure_Switcher",
+              "type": "quantitative",
+              "format": "#,#0%"
+            }
+          }
         }
       ]
     }
