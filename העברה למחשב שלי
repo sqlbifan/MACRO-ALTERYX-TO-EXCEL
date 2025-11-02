@@ -1,66 +1,211 @@
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
-  "data": {
-    "values": [
-      {"NAME": "A", "URL": "https://example.com/URL1.png", "x": 1},
-      {"NAME": "B", "URL": "https://example.com/URL2.png", "x": 0}
-    ]
-  },
-  "params": [
+  "data": {"name": "dataset"},
+  "transform": [
     {
-      "name": "selectionParam",
-      "value": "A",
-      "bind": {
-        "input": "select",
-        "options": ["A", "B"],
-        "name": "בחר:"
-      }
+      "joinaggregate": [
+        {"op": "max", "field": "Sales", "as": "MaxActual"},
+        {"op": "max", "field": "Region", "as": "Maxplan"}
+      ]
+    },
+    {
+      "joinaggregate": [
+        {"op": "sum", "field": "Sales", "as": "Sales_sum"},
+        {"op": "sum", "field": "Region", "as": "Region_sum"}
+      ],
+      "groupby": ["Category"]
     }
   ],
-  "width": 150,
-  "height": 80,
+  "width": 290,
+  "height": {"step": 40},
   "layer": [
     {
+      "name": "Header_Ratio",
       "mark": {
-        "type": "image",
-        "width": 60,
-        "height": 60,
-        "cursor": "pointer"
+        "type": "text",
+        "text": "ציון",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "align": "center",
+        "baseline": "bottom",
+        "color": "black"
       },
       "encoding": {
-        "x": {"field": "x", "type": "ordinal"},
-        "y": {"value": 0},
-        "url": {"field": "URL"},
-        "opacity": {
-          "condition": {"test": "datum.NAME == selectionParam", "value": 1},
-          "value": 0.4
-        },
-        "tooltip": {"field": "NAME"}
-      },
-      "selection": {
-        "selectFilter": {
-          "type": "point",
-          "on": "click",
-          "fields": ["NAME"],
-          "clear": false,
-          "bind": "scales"
-        }
+        "x": {"value": -100},
+        "y": {"value": -10} 
       }
     },
     {
-      "transform": [
-        {"filter": "datum.NAME == selectionParam"}
-      ],
+      "name": "Header_Sales",
       "mark": {
         "type": "text",
-        "yOffset": 40,
+        "text": "ביצוע",
+        "font": "Segoe UI",
         "fontWeight": "bold",
-        "size": 12
+        "size": 15,
+        "align": "left",
+        "baseline": "bottom",
+        "color": "black"
       },
       "encoding": {
-        "x": {"aggregate": "mean", "field": "x"},
-        "text": {"value": "✓ נבחר"}
+        "x": {"value": 0}, 
+        "y": {"value": -10} 
+      }
+    },
+    {
+      "name": "y_labels_clickable",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "normal",
+        "size": 15,
+        "align": "right",
+        "baseline": "middle",
+        "dx": 6,
+        "cursor": "pointer"
+      },
+      "encoding": {
+        "y": {"field": "Category", "type": "nominal", "bandPosition": 0.5},
+        "x": {"value": -150, "type": "quantitative"},
+        "text": {"field": "Category"},
+        "tooltip": [{"field": "Category", "type": "nominal", "title": "קטגוריה"}]
+      }
+    },
+    {
+      "description": "target bar",
+      "mark": {"type": "rule", "height": 25, "color": "#E6E6E6", "strokeWidth": 8},
+      "encoding": {
+        "y": {
+          "field": "Category",
+          "type": "nominal",
+          "axis": {
+            "grid": true,
+            "gridColor": "#f0efef",
+            "gridOpacity": 0.5,
+            "ticks": true,
+            "tickColor": "#f0efef",
+            "tickBand": "extent",
+            "tickSize": 80,
+            "title": null,
+            "labelFontSize": 15,
+            "labelPadding": 50
+          }
+        },
+        "x": {"field": "Region_sum", "type": "quantitative"},
+        "x2": {"field": "Sales_sum", "type": "quantitative"}
+      }
+    },
+    {
+      "description": "actual bar",
+      "mark": {
+        "type": "point",
+        "size": 300,
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#F87460' : '#15B29E'"}
+      },
+      "encoding": {
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"field": "Sales_sum", "type": "quantitative"}
+      }
+    },
+    {
+      "description": "actual TEXT",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "tooltip": false,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? -30 : 30"},
+        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#F87460' : '#15B29E'"}
+      },
+      "encoding": {
+        "text": {
+          "field": "Sales_sum",
+          "type": "quantitative",
+          "format": "#,#0.00'",
+          "formatType": "pbiFormat"
+        },
+        "x": {"field": "Sales_sum", "type": "quantitative"},
+        "y": {"field": "Category", "type": "nominal"}
+      }
+    },
+    {
+      "description": "target mark title",
+      "mark": {
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 12,
+        "tooltip": false,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? 40 : -40"},
+        "align": {"expr": "datum.Sales_sum < datum.Region_sum ? 'right' : 'left'"},
+        "color": "#c7c6c6"
+      },
+      "encoding": {
+        "text": {
+          "field": "Region_sum",
+          "type": "quantitative",
+          "format": "#,#0.00'",
+          "formatType": "pbiFormat"
+        },
+        "x": {"field": "Region_sum", "type": "quantitative"},
+        "y": {"field": "Category", "type": "nominal"}
+      }
+    },
+    {
+      "description": "target mark",
+      "mark": {
+        "type": "rule",
+        "point": {
+          "shape": "M0 0h1v15h-1z",
+          "yOffset": -16,
+          "size": 17,
+          "color": "#cccccc"
+        },
+        "stroke": "#FFFFFF00"
+      },
+      "encoding": {
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"field": "Region_sum", "type": "quantitative"}
+      }
+    },
+    {
+      "mark": {
+        "description": "ratio text",
+        "type": "text",
+        "font": "Segoe UI",
+        "fontWeight": "bold",
+        "size": 15,
+        "xOffset": {"expr": "datum.Sales_sum < datum.Region_sum ? 0 : 0"},
+        "color": {"expr": "datum.Sales_sum < datum.Region_sum ? '#ff7070' : '#15B29E'"}
+      },
+      "encoding": {
+        "text": {
+          "field": "RATIO",
+          "format": "#,#0.0%'",
+          "formatType": "pbiFormat"
+        },
+        "y": {"field": "Category", "type": "nominal"},
+        "x": {"value": -100}
       }
     }
-  ]
+  ],
+  "encoding": {
+    "y": {
+      "field": "Category",
+      "type": "nominal",
+      "axis": {
+        "labels": false,
+        "labelFont": "Segoe UI",
+        "labelFontSize": 15,
+        "labelFontWeight": "normal",
+        "labelAlign": "right",
+        "orient": "left"
+      },
+      "title": null,
+      "sort": {"op": "sum", "field": "RATIO", "order": "descending"}
+    },
+    "x": {"field": "Sales_sum", "type": "quantitative", "axis": null}
+  }
 }
