@@ -1,15 +1,244 @@
-Date Filter =
-VAR SlicerSelection = SELECTEDVALUE('Slicer Selections'[Type])
-VAR CurrentType = SELECTEDVALUE('Dynamic Date Selections'[Type])
-VAR NumDays = DATEDIFF(MIN('Date'[Date]), MAX('Date'[Date]), DAY)
-RETURN
-SWITCH(
-    TRUE(),
-    SlicerSelection = "Daily" && CurrentType = "Daily", 1,
-    SlicerSelection = "Monthly" && CurrentType = "Monthly", 1,
-    SlicerSelection = "Yearly" && CurrentType = "Yearly", 1,
-    SlicerSelection = "Dynamic" && NumDays <= 90 && CurrentType = "Daily", 1,
-    SlicerSelection = "Dynamic" && NumDays > 90 && NumDays <= 729 && CurrentType = "Monthly", 1,
-    SlicerSelection = "Dynamic" && NumDays >= 730 && CurrentType = "Yearly", 1,
-    0
-)
+{
+  "data": {
+    "name": "dataset"
+  },
+  "height": 320,
+  "width": 550,
+  "padding": {
+    "left": 20,
+    "top": 20,
+    "right": 20,
+    "bottom": 20
+  },
+  "params": [
+    {
+      "name": "RibbonOpacity",
+      "value": 0.1,
+      "bind": {
+        "input": "range",
+        "min": 0.1,
+        "max": 1,
+        "step": 0.1
+      }
+    }
+  ],
+  "encoding": {
+    "x": {
+      "timeUnit": "yearmonth",
+      "field": "Date",
+      "type": "ordinal",
+      "title": "",
+      "axis": {
+        "labelAngle": 0,
+        "labelExpr": "[timeFormat(datum.value, '%b'), timeFormat(datum.value, '%m') ? timeFormat(datum.value, '%Y') : '']"
+      }
+    },
+    "y": {
+      "aggregate": "sum",
+      "field": "Percent",
+      "type": "quantitative",
+      "axis": false,
+      "stack": "zero"
+    },
+    "color": {
+      "field": "Category",
+      "type": "nominal",
+      "scale": {
+        "scheme": "pbiColorNominal"
+      },
+      "legend": null
+    },
+    "order": {
+      "aggregate": "sum",
+      "field": "Percent",
+      "type": "quantitative"
+    }
+  },
+  "layer": [
+    {
+      "mark": {
+        "type": "area",
+        "interpolate": "monotone",
+        "opacity": {
+          "expr": "RibbonOpacity"
+        },
+        "tooltip": true
+      },
+      "params": [
+        {
+          "name": "area",
+          "select": {
+            "type": "point",
+            "fields": [
+              "Category"
+            ],
+            "on": "mouseover"
+          }
+        }
+      ],
+      "encoding": {
+        "y": {
+          "aggregate": "sum",
+          "field": "Percent",
+          "type": "quantitative",
+          "axis": false,
+          "stack": "zero"
+        },
+        "opacity": {
+          "condition": {
+            "param": "area",
+            "empty": false,
+            "value": 0.7
+          }
+        }
+      }
+    },
+    {
+      "transform": [
+        {
+          "window": [
+            {
+              "op": "rank",
+              "as": "rank"
+            }
+          ],
+          "sort": [
+            {
+              "field": "Date",
+              "order": "ascending"
+            }
+          ]
+        },
+        {
+          "filter": "datum.rank === 1"
+        }
+      ],
+      "layer": [
+        {
+          "mark": {
+            "type": "bar",
+            "stroke": "white",
+            "width": 15,
+            "xOffset": -10,
+            "tooltip": true
+          }
+        },
+        {///text start
+          "mark": {
+            "type": "text",
+            "align": "right",
+            "baseline": "top",
+            "dx": -20
+          },
+          "encoding": {
+            "text": {
+              "aggregate": "sum",
+              "field": "Percent",
+              "format": "1.0%"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "transform": [
+        {
+          "window": [
+            {
+              "op": "rank",
+              "as": "rank"
+            }
+          ],
+          "sort": [
+            {
+              "field": "Date",
+              "order": "descending"
+            }
+          ]
+        },
+        {
+          "filter": "datum.rank === 1"
+        },
+        {
+          "calculate": "format(datum['Percent'], '1.0%')",
+          "as": "percentformatted"
+        },
+        {
+          "calculate": "datum['Percentformatted']+', ' +datum['Category'] ",
+          "as": "label"
+        }
+      ],
+      "layer": [
+        {
+          "mark": {
+            "type": "bar",
+            "stroke": "white",
+            "width": 15,
+            "xOffset": 10,
+            "tooltip": true
+          }
+        },
+        {///text end
+          "mark": {
+            "type": "text",
+            "align": "left",
+            "baseline": "top",
+            "dx": 20
+          },
+          "encoding": {
+            "text": {
+              "field": "label",
+              "type": "geojson"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "mark": {
+        "type": "bar",
+        "stroke": "",
+        "width": 2,
+        "tooltip": true
+      },
+      "encoding": {
+        "color": {
+          "condition": {
+            "param": "area",
+            "empty": false,
+            "field": "Category",
+            "type": "nominal",
+            "legend": null
+          },
+          "value": "white"
+        }
+      }
+    },
+    {
+      "mark": {
+        "type": "text",
+        "stroke": "",
+        "width": 2,
+        "dy": -8,
+        "tooltip": true
+      },
+      "encoding": {
+        "text": {
+          "aggregate": "sum",
+          "field": "Percent",
+          "format": "1.0%"
+        },
+        "color": {
+          "condition": {
+            "param": "area",
+            "empty": false,
+            "field": "Category",
+            "type": "nominal",
+            "legend": null
+          },
+          "value": "transparent"
+        }
+      }
+    }
+  ]
+}
