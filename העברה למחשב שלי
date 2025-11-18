@@ -2,7 +2,7 @@
   "data": {
     "name": "dataset"
   },
-  "height": "container", //320,
+  "height": "container",
   "width": "container",
   "padding": {
     "left": 20,
@@ -10,18 +10,14 @@
     "right": 20,
     "bottom": 20
   },
-  "params": [
+
+  "transform": [
     {
-      "name": "RibbonOpacity",
-      "value": 1
-      //"bind": {
-       // "input": "range",
-       // "min": 0.3,
-      //  "max": 1,
-      //  "step": 0.1
-      //}
+      "calculate": "isValid(datum.Percent) ? 1 : 0",
+      "as": "SelectedFlag"
     }
   ],
+
   "encoding": {
     "x": {
       "timeUnit": "yearmonth",
@@ -46,9 +42,7 @@
       "scale": {
         "domain":["דיגיטל", "אחרים","מרכז משכנתאות","מחשבון משכנתה","רכזים","טפסי ליד","ליבי","מיניסייט","מסעות לקוח","שתפים","לידים"],
         "range": ["#5D5D67","#D8DFE7","#7C5BE4","#000000","#00ACEF","#A9B0BB","#B62AA7","#5D5D67","#FCCD50","#000000","#F87460"]
-        //"scheme": "pbiColorNominal"
       }
-      //"legend": null
     },
     "order": {
       "aggregate": "sum",
@@ -56,45 +50,25 @@
       "type": "quantitative"
     }
   },
+
   "layer": [
     {
       "mark": {
         "type": "area",
         "interpolate": "monotone",
-        "opacity": {
-          "expr": "RibbonOpacity"
-        },
         "tooltip": true
       },
-      "params": [
-        {
-          "name": "area",
-          "select": {
-            "type": "point",
-            "fields": [
-              "Category"
-            ],
-            "on": "click" //mouseover"
-          }
-        }
-      ],
       "encoding": {
-        "y": {
-          "aggregate": "sum",
-          "field": "Percent",
-          "type": "quantitative",
-          "axis": false,
-          "stack": "zero"
-        },
         "opacity": {
           "condition": {
-            "param": "area",
-            "empty": false,
-            "value": 0.7
-          }
+            "test": "datum.SelectedFlag == 1",
+            "value": 1
+          },
+          "value": 0.15
         }
       }
     },
+
     {
       "transform": [
         {
@@ -125,7 +99,7 @@
             "tooltip": true
           }
         },
-        {///text start
+        {
           "mark": {
             "type": "text",
             "align": "right",
@@ -142,6 +116,7 @@
         }
       ]
     },
+
     {
       "transform": [
         {
@@ -166,7 +141,7 @@
           "as": "percentformatted"
         },
         {
-          "calculate": "datum['percentformatted']+', ' +datum['Category'] ",
+          "calculate": "datum['percentformatted']+', ' +datum['Category']",
           "as": "label"
         }
       ],
@@ -180,7 +155,7 @@
             "tooltip": true
           }
         },
-        {///text end
+        {
           "mark": {
             "type": "text",
             "align": "left",
@@ -189,13 +164,13 @@
           },
           "encoding": {
             "text": {
-              "field": "label",
-              "type": "nominal"
+              "field": "label"
             }
           }
         }
       ]
     },
+
     {
       "mark": {
         "type": "bar",
@@ -205,17 +180,11 @@
       },
       "encoding": {
         "color": {
-          "condition": {
-            "param": "area",
-            "empty": false,
-            "field": "Category",
-            "type": "nominal",
-            "legend": null
-          },
           "value": "white"
         }
       }
     },
+
     {
       "mark": {
         "type": "text",
@@ -231,13 +200,6 @@
           "format": "1.0%"
         },
         "color": {
-          "condition": {
-            "param": "area",
-            "empty": false,
-            "field": "Category",
-            "type": "nominal",
-            "legend": null
-          },
           "value": "transparent"
         }
       }
