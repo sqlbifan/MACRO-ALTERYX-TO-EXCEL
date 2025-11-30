@@ -149,4 +149,24 @@
           "width": { "signal": "nodeWidth" },
           "fill": { "signal": "colors[datum.x]" },
           "stroke": { "value": "white" },
-          "tooltip":
+          "tooltip": { "signal": "'Stage ' + datum.name" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "nodes" },
+      "encode": {
+        "update": {
+          "text": { "signal": "'Stage ' + datum.name" },
+          "x": { "expr": "datum.x * 220 + nodeWidth + 6" },
+          "y": { "expr": "(datum.y0 + datum.y1) / 2" },
+          "baseline": { "value": "middle" },
+          "fontSize": { "value": 12 },
+          "fill": { "value": "#333333" }
+        }
+      }
+    }
+  ]
+}
