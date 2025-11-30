@@ -2,13 +2,61 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
   "data": [
-    { "name": "data" }
+    { "name": "dataset" }
   ],
 
   "marks": [
     {
       "type": "text",
-      "from": { "data": "data" },
+      "from": { "data": "dataset" },
+      "encode": {
+        "update": {
+          "x": { "value": 50 },
+          "y": { "value": 50 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 30 }
+        }
+      }
+    }
+  ]
+}
+
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+
+  "data": [
+    { "name": "source" }
+  ],
+
+  "marks": [
+    {
+      "type": "text",
+      "from": { "data": "source" },
+      "encode": {
+        "update": {
+          "x": { "value": 50 },
+          "y": { "value": 50 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 30 }
+        }
+      }
+    }
+  ]
+}
+
+
+{
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+
+  "data": [
+    { "name": "__data__" }
+  ],
+
+  "marks": [
+    {
+      "type": "text",
+      "from": { "data": "__data__" },
       "encode": {
         "update": {
           "x": { "value": 50 },
