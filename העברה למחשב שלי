@@ -1,162 +1,162 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
+  "width": 1100,
+  "height": 600,
+  "padding": 5,
+
+  "signals": [
+    { "name": "nodeWidth", "value": 26 },
+    { "name": "nodeHeight", "value": 28 },
+    { "name": "hgap", "value": 180 },
+    { "name": "vgap", "value": 45 }
+  ],
+
   "data": [
-    { "name": "dataset" },
-    { "name": "data" },
-    { "name": "source" },
-    { "name": "__dataset__" },
-    { "name": "data_0" },
-    { "name": "__data__" }
+    {
+      "name": "dataset"
+    },
+
+    {
+      "name": "links",
+      "source": "dataset",
+      "transform": [
+        {
+          "type": "aggregate",
+          "groupby": ["FROM", "TO"],
+          "fields": ["IDCOUNT"],
+          "ops": ["sum"],
+          "as": ["value"]
+        },
+
+        {
+          "type": "formula",
+          "as": "fromStage",
+          "expr": "datum.FROM=='ליד' ? 1 : datum.FROM=='הזדמנות' ? 2 : datum.FROM=='בקשה' ? 3 : datum.FROM=='ביצוע' ? 4 : datum.FROM=='None' ? 99 : 0"
+        },
+
+        {
+          "type": "formula",
+          "as": "toStage",
+          "expr": "datum.TO=='ליד' ? 1 : datum.TO=='הזדמנות' ? 2 : datum.TO=='בקשה' ? 3 : datum.TO=='ביצוע' ? 4 : datum.TO=='None' ? 99 : 0"
+        }
+      ]
+    },
+
+    {
+      "name": "nodes",
+      "source": "links",
+      "transform": [
+        { "type": "flatten", "fields": ["FROM", "TO"] },
+
+        { "type": "aggregate", "groupby": ["flatten"] },
+
+        {
+          "type": "formula",
+          "as": "stage",
+          "expr": "datum.flatten=='ליד' ? 1 : datum.flatten=='הזדמנות' ? 2 : datum.flatten=='בקשה' ? 3 : datum.flatten=='ביצוע' ? 4 : datum.flatten=='None' ? 99 : 0"
+        },
+
+        { "type": "formula", "as": "label", "expr": "datum.flatten" },
+
+        {
+          "type": "window",
+          "groupby": ["stage"],
+          "sort": { "field": "label" },
+          "ops": ["row_number"],
+          "as": ["row"]
+        },
+
+        {
+          "type": "formula",
+          "as": "x",
+          "expr": "datum.stage==99 ? 4*hgap : (datum.stage-1)*hgap"
+        },
+        {
+          "type": "formula",
+          "as": "y",
+          "expr": "datum.row * vgap + 40"
+        },
+
+        { "type": "identifier", "as": "id" }
+      ]
+    },
+
+    {
+      "name": "links_pos",
+      "source": "links",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "label",
+          "fields": ["FROM"],
+          "as": ["src"]
+        },
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "label",
+          "fields": ["TO"],
+          "as": ["tgt"]
+        },
+        {
+          "type": "linkpath",
+          "shape": "diagonal",
+          "orient": "horizontal",
+          "sourceX": { "expr": "datum.src.x + nodeWidth" },
+          "sourceY": { "expr": "datum.src.y + nodeHeight/2" },
+          "targetX": { "expr": "datum.tgt.x" },
+          "targetY": { "expr": "datum.tgt.y + nodeHeight/2" }
+        }
+      ]
+    }
   ],
 
   "marks": [
     {
-      "type": "text",
-      "from": { "data": "dataset" },
+      "type": "path",
+      "from": { "data": "links_pos" },
       "encode": {
         "update": {
-          "x": { "value": 20 },
-          "y": { "value": 30 },
-          "text": { "value": "dataset → " },
-          "fontSize": { "value": 16 }
+          "path": { "field": "path" },
+          "stroke": { "value": "#777" },
+          "strokeOpacity": { "value": 0.4 },
+          "strokeWidth": { "expr": "max(1, datum.value)" },
+          "tooltip": {
+            "signal": "datum.FROM + ' → ' + datum.TO + '\\nכמות: ' + datum.value"
+          }
         }
       }
     },
+
     {
-      "type": "text",
-      "from": { "data": "dataset" },
+      "type": "rect",
+      "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "x": { "value": 140 },
-          "y": { "value": 30 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
+          "x": { "field": "x" },
+          "y": { "field": "y" },
+          "width": { "signal": "nodeWidth" },
+          "height": { "signal": "nodeHeight" },
+          "fill": { "value": "#69b3a2" },
+          "stroke": { "value": "white" },
+          "tooltip": { "signal": "datum.label" }
         }
       }
     },
 
     {
       "type": "text",
-      "from": { "data": "data" },
+      "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "x": { "value": 20 },
-          "y": { "value": 60 },
-          "text": { "value": "data → " },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-    {
-      "type": "text",
-      "from": { "data": "data" },
-      "encode": {
-        "update": {
-          "x": { "value": 140 },
-          "y": { "value": 60 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-
-    {
-      "type": "text",
-      "from": { "data": "source" },
-      "encode": {
-        "update": {
-          "x": { "value": 20 },
-          "y": { "value": 90 },
-          "text": { "value": "source → " },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-    {
-      "type": "text",
-      "from": { "data": "source" },
-      "encode": {
-        "update": {
-          "x": { "value": 140 },
-          "y": { "value": 90 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-
-    {
-      "type": "text",
-      "from": { "data": "__dataset__" },
-      "encode": {
-        "update": {
-          "x": { "value": 20 },
-          "y": { "value": 120 },
-          "text": { "value": "__dataset__ → " },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-    {
-      "type": "text",
-      "from": { "data": "__dataset__" },
-      "encode": {
-        "update": {
-          "x": { "value": 180 },
-          "y": { "value": 120 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-
-    {
-      "type": "text",
-      "from": { "data": "data_0" },
-      "encode": {
-        "update": {
-          "x": { "value": 20 },
-          "y": { "value": 150 },
-          "text": { "value": "data_0 → " },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-    {
-      "type": "text",
-      "from": { "data": "data_0" },
-      "encode": {
-        "update": {
-          "x": { "value": 140 },
-          "y": { "value": 150 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-
-    {
-      "type": "text",
-      "from": { "data": "__data__" },
-      "encode": {
-        "update": {
-          "x": { "value": 20 },
-          "y": { "value": 180 },
-          "text": { "value": "__data__ → " },
-          "fontSize": { "value": 16 }
-        }
-      }
-    },
-    {
-      "type": "text",
-      "from": { "data": "__data__" },
-      "encode": {
-        "update": {
-          "x": { "value": 160 },
-          "y": { "value": 180 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 16 }
+          "text": { "field": "label" },
+          "x": { "expr": "datum.x + nodeWidth + 6" },
+          "y": { "expr": "datum.y + nodeHeight/2" },
+          "baseline": { "value": "middle" },
+          "fontSize": { "value": 13 },
+          "fill": { "value": "#333" }
         }
       }
     }
