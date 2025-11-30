@@ -1,6 +1,89 @@
 {
+  "usermeta": {
+    "information": {
+      "uuid": "abe84676-f5eb-4f0e-8bc8-dd32bb7a3dd2",
+      "generated": "2025-11-30T13:35:41.562Z",
+      "previewImageBase64PNG": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+      "name": "SANKEY",
+      "description": "[No Description Provided]",
+      "author": "[No Author Details Provided]"
+    },
+    "deneb": {
+      "build": "1.8.2.0",
+      "metaVersion": 1,
+      "provider": "vega",
+      "providerVersion": "6.2.0"
+    },
+    "interactivity": {
+      "tooltip": true,
+      "contextMenu": true,
+      "selection": true,
+      "selectionMode": "simple",
+      "highlight": true,
+      "dataPointLimit": 50
+    },
+    "config": "{}",
+    "dataset": [
+      {
+        "key": "__0__",
+        "name": "category",
+        "description": "",
+        "kind": "column",
+        "type": "text"
+      },
+      {
+        "key": "__1__",
+        "name": "destination",
+        "description": "",
+        "kind": "column",
+        "type": "text"
+      },
+      {
+        "key": "__2__",
+        "name": "gap",
+        "description": "",
+        "kind": "column",
+        "type": "numeric"
+      },
+      {
+        "key": "__3__",
+        "name": "labels",
+        "description": "",
+        "kind": "column",
+        "type": "text"
+      },
+      {
+        "key": "__4__",
+        "name": "sort",
+        "description": "",
+        "kind": "column",
+        "type": "numeric"
+      },
+      {
+        "key": "__5__",
+        "name": "source",
+        "description": "",
+        "kind": "column",
+        "type": "text"
+      },
+      {
+        "key": "__6__",
+        "name": "stack",
+        "description": "",
+        "kind": "column",
+        "type": "numeric"
+      },
+      {
+        "key": "__7__",
+        "name": "value",
+        "description": "",
+        "kind": "column",
+        "type": "numeric"
+      }
+    ]
+  },
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Sankey Chart",
+  "description": "Sankey Chart by David Bacci: https://www.linkedin.com/in/davbacci/",
   "width": 1000,
   "height": 700,
   "padding": {
@@ -10,17 +93,13 @@
     "top": 40
   },
   "title": {
-     "text": "",
-    "subtitle": "Verwaltungshaushalt (Mio. €)",
+    "text": "Microsoft's FY23 Q2 Income Statement",
     "color": "#005ca5",
-    "subtitleColor": "#666666",
-    "fontSize": 34,
-    "subtitleFontSize": 16,
-    "subtitleFontWeight": "normal",
+    "fontSize": 32,
     "dy": 0,
     "fontWeight": "bold",
-    "offset": 30}
-  ,
+    "offset": 30
+  },
   "background": "#fafafa",
   "signals": [
     {
@@ -48,7 +127,7 @@
       "transform": [
         {
           "type": "filter",
-          "expr": "datum.source != null"
+          "expr": "datum['__5__'] != null"
         },
         {
           "type": "formula",
@@ -58,14 +137,14 @@
         {
           "type": "formula",
           "as": "name",
-          "expr": "[ datum.source,datum.destination]"
+          "expr": "[ datum['__5__'],datum['__1__']]"
         },
         {
           "type": "project",
           "fields": [
             "end",
             "name",
-            "value"
+            "__7__"
           ]
         },
         {
@@ -78,31 +157,31 @@
         {
           "type": "lookup",
           "from": "input",
-          "key": "category",
+          "key": "__0__",
           "values": [
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ],
           "fields": [
             "name"
           ],
           "as": [
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ]
         },
         {
           "type": "aggregate",
           "fields": [
-            "value",
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__7__",
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ],
           "groupby": [
             "end",
@@ -116,21 +195,21 @@
             "max"
           ],
           "as": [
-            "value",
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__7__",
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ]
         },
         {
           "type": "aggregate",
           "fields": [
-            "value",
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__7__",
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ],
           "groupby": [
             "name"
@@ -143,17 +222,17 @@
             "max"
           ],
           "as": [
-            "value",
-            "stack",
-            "sort",
-            "gap",
-            "labels"
+            "__7__",
+            "__6__",
+            "__4__",
+            "__2__",
+            "__3__"
           ]
         },
         {
           "type": "formula",
-          "as": "gap",
-          "expr": "datum.gap?datum.gap:0"
+          "as": "__2__",
+          "expr": "datum['__2__']?datum['__2__']:0"
         }
       ]
     },
@@ -166,28 +245,28 @@
         {
           "type": "aggregate",
           "fields": [
-            "value"
+            "__7__"
           ],
           "groupby": [
-            "stack"
+            "__6__"
           ],
           "ops": [
             "sum"
           ],
           "as": [
-            "value"
+            "__7__"
           ]
         },
         {
           "type": "aggregate",
           "fields": [
-            "value"
+            "__7__"
           ],
           "ops": [
             "max"
           ],
           "as": [
-            "value"
+            "__7__"
           ]
         }
       ]
@@ -201,7 +280,7 @@
         {
           "type": "formula",
           "as": "spacer",
-          "expr": " (data('maxValue')[0].value/100)*(standardGap+datum.gap)"
+          "expr": " (data('maxValue')[0].value/100)*(standardGap+datum['__2__'])"
         },
         {
           "type": "formula",
@@ -211,7 +290,7 @@
         {
           "type": "formula",
           "as": "spacedValue",
-          "expr": "[datum.value,datum.spacer]"
+          "expr": "[datum['__7__'],datum.spacer]"
         },
         {
           "type": "flatten",
@@ -221,12 +300,12 @@
           ]
         },
         {
-          "type": "stack",
+          "type": "__6__",
           "groupby": [
-            "stack"
+            "__6__"
           ],
           "sort": {
-            "field": "sort",
+            "field": "__4__",
             "order": "descending"
           },
           "field": "spacedValue",
@@ -236,7 +315,7 @@
         },
         {
           "type": "formula",
-          "expr": "((datum.value)/2)+datum.y0",
+          "expr": "((datum['__7__'])/2)+datum.y0",
           "as": "yc"
         }
       ]
@@ -261,7 +340,7 @@
       "transform": [
         {
           "type": "filter",
-          "expr": "datum.source != null"
+          "expr": "datum['__5__'] != null"
         },
         {
           "type": "lookup",
@@ -270,11 +349,11 @@
           "values": [
             "y0",
             "y1",
-            "stack",
-            "sort"
+            "__6__",
+            "__4__"
           ],
           "fields": [
-            "source"
+            "__5__"
           ],
           "as": [
             "sourceStacky0",
@@ -290,11 +369,11 @@
           "values": [
             "y0",
             "y1",
-            "stack",
-            "sort"
+            "__6__",
+            "__4__"
           ],
           "fields": [
-            "destination"
+            "__1__"
           ],
           "as": [
             "destinationStacky0",
@@ -304,15 +383,15 @@
           ]
         },
         {
-          "type": "stack",
+          "type": "__6__",
           "groupby": [
-            "source"
+            "__5__"
           ],
           "sort": {
             "field": "destinationSort",
             "order": "descending"
           },
-          "field": "value",
+          "field": "__7__",
           "offset": "zero",
           "as": [
             "syi0",
@@ -321,24 +400,24 @@
         },
         {
           "type": "formula",
-          "expr": "datum.syi0+datum.sourceStacky0",
+          "expr": "datum.syi0+datum['__5__']Stacky0",
           "as": "sy0"
         },
         {
           "type": "formula",
-          "expr": "datum.sy0+datum.value",
+          "expr": "datum.sy0+datum['__7__']",
           "as": "sy1"
         },
         {
-          "type": "stack",
+          "type": "__6__",
           "groupby": [
-            "destination"
+            "__1__"
           ],
           "sort": {
             "field": "sourceSort",
             "order": "descending"
           },
-          "field": "value",
+          "field": "__7__",
           "offset": "zero",
           "as": [
             "dyi0",
@@ -347,22 +426,22 @@
         },
         {
           "type": "formula",
-          "expr": "datum.dyi0+datum.destinationStacky0",
+          "expr": "datum.dyi0+datum['__1__']Stacky0",
           "as": "dy0"
         },
         {
           "type": "formula",
-          "expr": "datum.dy0+datum.value",
+          "expr": "datum.dy0+datum['__7__']",
           "as": "dy1"
         },
         {
           "type": "formula",
-          "expr": "((datum.value)/2)+datum.sy0",
+          "expr": "((datum['__7__'])/2)+datum.sy0",
           "as": "syc"
         },
         {
           "type": "formula",
-          "expr": "((datum.value)/2)+datum.dy0",
+          "expr": "((datum['__7__'])/2)+datum.dy0",
           "as": "dyc"
         },
         {
@@ -373,18 +452,18 @@
             "expr": "scale('y', datum.syc)"
           },
           "sourceX": {
-            "expr": "scale('x', toNumber(  datum.sourceStack))+ bandwidth('x')"
+            "expr": "scale('x', toNumber(  datum[\\'__5__\\']Stack))+ bandwidth('x')"
           },
           "targetY": {
             "expr": "scale('y', datum.dyc)"
           },
           "targetX": {
-            "expr": "scale('x', datum.destinationStack)"
+            "expr": "scale('x', datum['__1__']Stack)"
           }
         },
         {
           "type": "formula",
-          "expr": "range('y')[0]-scale('y', datum.value)",
+          "expr": "range('y')[0]-scale('y', datum['__7__'])",
           "as": "strokeWidth"
         }
       ]
@@ -397,7 +476,8 @@
       "range": "width",
       "domain": {
         "data": "finalTable",
-        "field": "stack", "sort":true
+        "field": "__6__",
+        "sort": true
       },
       "paddingInner": 0.88
     },
@@ -415,11 +495,16 @@
       "name": "color",
       "type": "ordinal",
       "range": {
-        "scheme": "blues"
+        "scheme": "turbo"
       },
       "domain": {
         "data": "stacks",
-        "field": "name", "sort":{ "op": "sum", "field": "stack", "order": "ascending"}
+        "field": "name",
+        "sort": {
+          "op": "sum",
+          "field": "__6__",
+          "order": "ascending"
+        }
       }
     }
   ],
@@ -433,7 +518,7 @@
         "update": {
           "x": {
             "scale": "x",
-            "field": "stack"
+            "field": "__6__"
           },
           "width": {
             "scale": "x",
@@ -464,7 +549,7 @@
         },
         "hover": {
           "tooltip": {
-            "signal": "{'Name':datum.name, 'Value':format(datum.value, '$') + ' M'}"
+            "signal": "{'Name':datum.name, 'Value':format(datum[\\'__7__\\'], '$') + 'B'}"
           },
           "fillOpacity": {
             "value": 1
@@ -491,7 +576,7 @@
             "signal": "0.3"
           },
           "stroke": {
-            "field": "destination",
+            "field": "__1__",
             "scale": "color"
           }
         },
@@ -500,7 +585,7 @@
             "value": 1
           },
           "tooltip": {
-            "signal": "{'Source':datum.source,'Destination':datum.destination, 'Value':format(datum.value, '$') + ' M'}"
+            "signal": "{'Source':datum[\\'__5__\\'],'Destination':datum[\\'__1__\\'], 'Value':format(datum[\\'__7__\\'], '$') + 'B'}"
           }
         }
       }
@@ -515,10 +600,10 @@
           "name": "labelFacet",
           "groupby": [
             "name",
-            "stack",
+            "__6__",
             "yc",
-            "value",
-            "labels"
+            "__7__",
+            "__3__"
           ]
         }
       },
@@ -532,7 +617,7 @@
             "value": "red"
           },
           "x": {
-            "signal": "datum.labels=='left'?scale('x', datum.stack)-8 : scale('x', datum.stack) + (bandwidth('x')) +8"
+            "signal": "datum['__3__']=='left'?scale('x', datum[\\'__6__\\'])-8 : scale('x', datum[\\'__6__\\']) + (bandwidth('x')) +8"
           },
           "yc": {
             "scale": "y",
@@ -568,7 +653,7 @@
                 "field": "name"
               },
               "align": {
-                "signal": "datum.labels=='left'?'right':'left'"
+                "signal": "datum['__3__']=='left'?'right':'left'"
               },
               "fontWeight": {
                 "value": "normal"
@@ -591,10 +676,10 @@
                 "value": 12
               },
               "text": {
-                "signal": " format(datum.value / 1e0,',.1f', 'd') + ' M €'"
+                "signal": " format(datum['__7__'], '$') + 'B'"
               },
               "align": {
-                "signal": "datum.labels=='left'?'right':'left'"
+                "signal": "datum['__3__']=='left'?'right':'left'"
               }
             }
           }
@@ -645,7 +730,8 @@
         "update": {
           "text": {
             "value": [
-              ""
+              "Source: https://www.microsoft.com/en-us/investor/earnings/fy-2023-q2/income-statements",
+              "Dataviz: David Bacci"
             ]
           },
           "align": {
