@@ -1,52 +1,45 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
-  "description": "Simple Sankey without dates",
+  "description": "Multi-step Sankey (5 stages: 1,2,3,4,99)",
 
+  "width": 1000,
+  "height": 600,
   "padding": 5,
-  "width": 900,
-  "height": 500,
 
   "signals": [
-    { "name": "nodeWidth", "value": 20 },
-    { "name": "nodePadding", "value": 10 }
+    { "name": "nodeWidth", "value": 18 },
+    { "name": "nodePadding", "value": 12 },
+    { "name": "colors", "value": ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3"] }
   ],
 
   "data": [
     {
-      "name": "dataset"
+      "name": "raw",
+      "source": "dataset"
     },
 
     {
       "name": "links",
-      "source": "dataset",
+      "source": "raw",
       "transform": [
         {
           "type": "aggregate",
-          "groupby": ["previous_department", "current_department"],
-          "ops": ["count"],
-          "as": ["count"]
-        },
-        {
-          "type": "formula",
-          "as": "source",
-          "expr": "datum.previous_department"
-        },
-        {
-          "type": "formula",
-          "as": "target",
-          "expr": "datum.current_department"
+          "groupby": ["FROM", "TO"],
+          "fields": ["IDCOUNT"],
+          "ops": ["sum"],
+          "as": ["value"]
         }
       ]
     },
 
     {
-      "name": "nodes",
+      "name": "nodes_raw",
       "source": "links",
       "transform": [
         {
           "type": "flatten",
-          "fields": ["source", "target"]
+          "fields": ["FROM", "TO"]
         },
         {
           "type": "aggregate",
@@ -55,40 +48,78 @@
         {
           "type": "formula",
           "as": "name",
-          "expr": "datum.flatten"
-        },
-        {
-          "type": "identifier",
-          "as": "id"
+          "expr": "toString(datum.flatten)"
         }
       ]
     },
 
     {
-      "name": "sankey",
+      "name": "nodes",
+      "source": "nodes_raw",
+      "transform": [
+        {
+          "type": "identifier",
+          "as": "id"
+        },
+        {
+          "type": "formula",
+          "as": "stage",
+          "expr": "toNumber(datum.name)"
+        },
+        {
+          "type": "formula",
+          "as": "x",
+          "expr": "datum.stage==99 ? 4 : datum.stage-1"
+        },
+        {
+          "type": "window",
+          "ops": ["row_number"],
+          "sort": { "field": "name", "order": "ascending" },
+          "as": ["rank"]
+        },
+        {
+          "type": "formula",
+          "as": "y0",
+          "expr": "(datum.rank-1)*(nodePadding+20)+40"
+        },
+        {
+          "type": "formula",
+          "as": "y1",
+          "expr": "datum.y0+20"
+        }
+      ]
+    },
+
+    {
+      "name": "links_pos",
       "source": "links",
       "transform": [
         {
           "type": "lookup",
           "from": "nodes",
           "key": "name",
-          "fields": ["source"],
-          "as": ["sourceNode"]
+          "fields": ["FROM"],
+          "as": ["fromNode"]
         },
         {
           "type": "lookup",
           "from": "nodes",
           "key": "name",
-          "fields": ["target"],
-          "as": ["targetNode"]
+          "fields": ["TO"],
+          "as": ["toNode"]
         },
         {
           "type": "linkpath",
-          "shape": "sankey",
-          "sourceX": { "expr": "datum.sourceNode.id * 150 + nodeWidth" },
-          "sourceY": { "expr": "datum.sourceNode.id * nodePadding + 50" },
-          "targetX": { "expr": "datum.targetNode.id * 150" },
-          "targetY": { "expr": "datum.targetNode.id * nodePadding + 50" }
+          "shape": "diagonal",
+          "orient": "horizontal",
+          "sourceX": {
+            "expr": "datum.fromNode.x * 220 + nodeWidth"
+          },
+          "sourceY": { "expr": "(datum.fromNode.y0 + datum.fromNode.y1)/2" },
+          "targetX": {
+            "expr": "datum.toNode.x * 220"
+          },
+          "targetY": { "expr": "(datum.toNode.y0 + datum.toNode.y1)/2" }
         }
       ]
     }
@@ -97,15 +128,15 @@
   "marks": [
     {
       "type": "path",
-      "from": { "data": "sankey" },
+      "from": { "data": "links_pos" },
       "encode": {
         "update": {
-          "stroke": { "value": "#999" },
-          "strokeWidth": { "signal": "max(1, datum.count)" },
-          "strokeOpacity": { "value": 0.6 },
           "path": { "field": "path" },
+          "stroke": { "value": "#777" },
+          "strokeOpacity": { "value": 0.45 },
+          "strokeWidth": { "expr": "max(1, datum.value)" },
           "tooltip": {
-            "signal": "datum.source + ' → ' + datum.target + ': ' + datum.count"
+            "signal": "'Stage '+datum.FROM+' → '+datum.TO+' : '+datum.value"
           }
         }
       }
@@ -116,12 +147,13 @@
       "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "x": { "expr": "datum.id * 150" },
-          "y": { "expr": "datum.id * nodePadding + 30" },
-          "height": { "value": 20 },
+          "x": { "expr": "datum.x * 220" },
+          "y": { "field": "y0" },
+          "y2": { "field": "y1" },
           "width": { "signal": "nodeWidth" },
-          "fill": { "value": "#1f77b4" },
-          "tooltip": { "signal": "datum.name" }
+          "fill": { "signal": "colors[datum.x]" },
+          "stroke": { "value": "white" },
+          "tooltip": { "signal": "'Stage '+datum.name" }
         }
       }
     },
@@ -131,11 +163,12 @@
       "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "text": { "field": "name" },
-          "x": { "expr": "datum.id * 150 + nodeWidth + 5" },
-          "y": { "expr": "datum.id * nodePadding + 40" },
+          "text": { "signal": "'Stage '+datum.name" },
+          "x": { "expr": "datum.x * 220 + nodeWidth + 6" },
+          "y": { "expr": "(datum.y0+datum.y1)/2" },
+          "baseline": { "value": "middle" },
           "fontSize": { "value": 12 },
-          "align": { "value": "left" }
+          "fill": { "value": "#333" }
         }
       }
     }
