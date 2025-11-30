@@ -2,7 +2,12 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
   "data": [
-    { "name": "dataset" }
+    { "name": "dataset" },
+    { "name": "data" },
+    { "name": "source" },
+    { "name": "__dataset__" },
+    { "name": "data_0" },
+    { "name": "__data__" }
   ],
 
   "marks": [
@@ -11,10 +16,147 @@
       "from": { "data": "dataset" },
       "encode": {
         "update": {
-          "x": { "value": 50 },
-          "y": { "value": 50 },
+          "x": { "value": 20 },
+          "y": { "value": 30 },
+          "text": { "value": "dataset → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "dataset" },
+      "encode": {
+        "update": {
+          "x": { "value": 140 },
+          "y": { "value": 30 },
           "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 30 }
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "data" },
+      "encode": {
+        "update": {
+          "x": { "value": 20 },
+          "y": { "value": 60 },
+          "text": { "value": "data → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "data" },
+      "encode": {
+        "update": {
+          "x": { "value": 140 },
+          "y": { "value": 60 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "source" },
+      "encode": {
+        "update": {
+          "x": { "value": 20 },
+          "y": { "value": 90 },
+          "text": { "value": "source → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "source" },
+      "encode": {
+        "update": {
+          "x": { "value": 140 },
+          "y": { "value": 90 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "__dataset__" },
+      "encode": {
+        "update": {
+          "x": { "value": 20 },
+          "y": { "value": 120 },
+          "text": { "value": "__dataset__ → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "__dataset__" },
+      "encode": {
+        "update": {
+          "x": { "value": 180 },
+          "y": { "value": 120 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "data_0" },
+      "encode": {
+        "update": {
+          "x": { "value": 20 },
+          "y": { "value": 150 },
+          "text": { "value": "data_0 → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "data_0" },
+      "encode": {
+        "update": {
+          "x": { "value": 140 },
+          "y": { "value": 150 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "__data__" },
+      "encode": {
+        "update": {
+          "x": { "value": 20 },
+          "y": { "value": 180 },
+          "text": { "value": "__data__ → " },
+          "fontSize": { "value": 16 }
+        }
+      }
+    },
+    {
+      "type": "text",
+      "from": { "data": "__data__" },
+      "encode": {
+        "update": {
+          "x": { "value": 160 },
+          "y": { "value": 180 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 16 }
         }
       }
     }
