@@ -1,768 +1,143 @@
 {
-  "usermeta": {
-    "information": {
-      "uuid": "abe84676-f5eb-4f0e-8bc8-dd32bb7a3dd2",
-      "generated": "2025-11-30T13:35:41.562Z",
-      "previewImageBase64PNG": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
-      "name": "SANKEY",
-      "description": "[No Description Provided]",
-      "author": "[No Author Details Provided]"
-    },
-    "deneb": {
-      "build": "1.8.2.0",
-      "metaVersion": 1,
-      "provider": "vega",
-      "providerVersion": "6.2.0"
-    },
-    "interactivity": {
-      "tooltip": true,
-      "contextMenu": true,
-      "selection": true,
-      "selectionMode": "simple",
-      "highlight": true,
-      "dataPointLimit": 50
-    },
-    "config": "{}",
-    "dataset": [
-      {
-        "key": "__0__",
-        "name": "category",
-        "description": "",
-        "kind": "column",
-        "type": "text"
-      },
-      {
-        "key": "__1__",
-        "name": "destination",
-        "description": "",
-        "kind": "column",
-        "type": "text"
-      },
-      {
-        "key": "__2__",
-        "name": "gap",
-        "description": "",
-        "kind": "column",
-        "type": "numeric"
-      },
-      {
-        "key": "__3__",
-        "name": "labels",
-        "description": "",
-        "kind": "column",
-        "type": "text"
-      },
-      {
-        "key": "__4__",
-        "name": "sort",
-        "description": "",
-        "kind": "column",
-        "type": "numeric"
-      },
-      {
-        "key": "__5__",
-        "name": "source",
-        "description": "",
-        "kind": "column",
-        "type": "text"
-      },
-      {
-        "key": "__6__",
-        "name": "stack",
-        "description": "",
-        "kind": "column",
-        "type": "numeric"
-      },
-      {
-        "key": "__7__",
-        "name": "value",
-        "description": "",
-        "kind": "column",
-        "type": "numeric"
-      }
-    ]
-  },
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "Sankey Chart by David Bacci: https://www.linkedin.com/in/davbacci/",
-  "width": 1000,
-  "height": 700,
-  "padding": {
-    "bottom": 20,
-    "left": 20,
-    "right": 30,
-    "top": 40
-  },
-  "title": {
-    "text": "Microsoft's FY23 Q2 Income Statement",
-    "color": "#005ca5",
-    "fontSize": 32,
-    "dy": 0,
-    "fontWeight": "bold",
-    "offset": 30
-  },
-  "background": "#fafafa",
+
+  "description": "Simple Sankey without dates",
+
+  "padding": 5,
+  "width": 900,
+  "height": 500,
+
   "signals": [
-    {
-      "name": "standardGap",
-      "value": 14,
-      "description": "Gap as a percentage of full domain"
-    },
-    {
-      "name": "base",
-      "value": "center",
-      "description": "How to stack(center or zero)"
-    }
+    { "name": "nodeWidth", "value": 20 },
+    { "name": "nodePadding", "value": 10 }
   ],
+
   "data": [
     {
       "name": "dataset"
     },
+
     {
-      "name": "input",
-      "source": "dataset"
-    },
-    {
-      "name": "stacks",
-      "source": "input",
+      "name": "links",
+      "source": "dataset",
       "transform": [
         {
-          "type": "filter",
-          "expr": "datum['__5__'] != null"
+          "type": "aggregate",
+          "groupby": ["previous_department", "current_department"],
+          "ops": ["count"],
+          "as": ["count"]
         },
         {
           "type": "formula",
-          "as": "end",
-          "expr": "['source','destination']"
+          "as": "source",
+          "expr": "datum.previous_department"
+        },
+        {
+          "type": "formula",
+          "as": "target",
+          "expr": "datum.current_department"
+        }
+      ]
+    },
+
+    {
+      "name": "nodes",
+      "source": "links",
+      "transform": [
+        {
+          "type": "flatten",
+          "fields": ["source", "target"]
+        },
+        {
+          "type": "aggregate",
+          "groupby": ["flatten"]
         },
         {
           "type": "formula",
           "as": "name",
-          "expr": "[ datum['__5__'],datum['__1__']]"
+          "expr": "datum.flatten"
         },
         {
-          "type": "project",
-          "fields": [
-            "end",
-            "name",
-            "__7__"
-          ]
-        },
-        {
-          "type": "flatten",
-          "fields": [
-            "end",
-            "name"
-          ]
-        },
+          "type": "identifier",
+          "as": "id"
+        }
+      ]
+    },
+
+    {
+      "name": "sankey",
+      "source": "links",
+      "transform": [
         {
           "type": "lookup",
-          "from": "input",
-          "key": "__0__",
-          "values": [
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ],
-          "fields": [
-            "name"
-          ],
-          "as": [
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ]
-        },
-        {
-          "type": "aggregate",
-          "fields": [
-            "__7__",
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ],
-          "groupby": [
-            "end",
-            "name"
-          ],
-          "ops": [
-            "sum",
-            "max",
-            "max",
-            "max",
-            "max"
-          ],
-          "as": [
-            "__7__",
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ]
-        },
-        {
-          "type": "aggregate",
-          "fields": [
-            "__7__",
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ],
-          "groupby": [
-            "name"
-          ],
-          "ops": [
-            "max",
-            "max",
-            "max",
-            "max",
-            "max"
-          ],
-          "as": [
-            "__7__",
-            "__6__",
-            "__4__",
-            "__2__",
-            "__3__"
-          ]
-        },
-        {
-          "type": "formula",
-          "as": "__2__",
-          "expr": "datum['__2__']?datum['__2__']:0"
-        }
-      ]
-    },
-    {
-      "name": "maxValue",
-      "source": [
-        "stacks"
-      ],
-      "transform": [
-        {
-          "type": "aggregate",
-          "fields": [
-            "__7__"
-          ],
-          "groupby": [
-            "__6__"
-          ],
-          "ops": [
-            "sum"
-          ],
-          "as": [
-            "__7__"
-          ]
-        },
-        {
-          "type": "aggregate",
-          "fields": [
-            "__7__"
-          ],
-          "ops": [
-            "max"
-          ],
-          "as": [
-            "__7__"
-          ]
-        }
-      ]
-    },
-    {
-      "name": "plottedStacks",
-      "source": [
-        "stacks"
-      ],
-      "transform": [
-        {
-          "type": "formula",
-          "as": "spacer",
-          "expr": " (data('maxValue')[0].value/100)*(standardGap+datum['__2__'])"
-        },
-        {
-          "type": "formula",
-          "as": "type",
-          "expr": "['data','spacer']"
-        },
-        {
-          "type": "formula",
-          "as": "spacedValue",
-          "expr": "[datum['__7__'],datum.spacer]"
-        },
-        {
-          "type": "flatten",
-          "fields": [
-            "type",
-            "spacedValue"
-          ]
-        },
-        {
-          "type": "__6__",
-          "groupby": [
-            "__6__"
-          ],
-          "sort": {
-            "field": "__4__",
-            "order": "descending"
-          },
-          "field": "spacedValue",
-          "offset": {
-            "signal": "base"
-          }
-        },
-        {
-          "type": "formula",
-          "expr": "((datum['__7__'])/2)+datum.y0",
-          "as": "yc"
-        }
-      ]
-    },
-    {
-      "name": "finalTable",
-      "source": [
-        "plottedStacks"
-      ],
-      "transform": [
-        {
-          "type": "filter",
-          "expr": "datum.type == 'data'"
-        }
-      ]
-    },
-    {
-      "name": "linkTable",
-      "source": [
-        "input"
-      ],
-      "transform": [
-        {
-          "type": "filter",
-          "expr": "datum['__5__'] != null"
-        },
-        {
-          "type": "lookup",
-          "from": "finalTable",
+          "from": "nodes",
           "key": "name",
-          "values": [
-            "y0",
-            "y1",
-            "__6__",
-            "__4__"
-          ],
-          "fields": [
-            "__5__"
-          ],
-          "as": [
-            "sourceStacky0",
-            "sourceStacky1",
-            "sourceStack",
-            "sourceSort"
-          ]
+          "fields": ["source"],
+          "as": ["sourceNode"]
         },
         {
           "type": "lookup",
-          "from": "finalTable",
+          "from": "nodes",
           "key": "name",
-          "values": [
-            "y0",
-            "y1",
-            "__6__",
-            "__4__"
-          ],
-          "fields": [
-            "__1__"
-          ],
-          "as": [
-            "destinationStacky0",
-            "destinationStacky1",
-            "destinationStack",
-            "destinationSort"
-          ]
-        },
-        {
-          "type": "__6__",
-          "groupby": [
-            "__5__"
-          ],
-          "sort": {
-            "field": "destinationSort",
-            "order": "descending"
-          },
-          "field": "__7__",
-          "offset": "zero",
-          "as": [
-            "syi0",
-            "syi1"
-          ]
-        },
-        {
-          "type": "formula",
-          "expr": "datum.syi0+datum['__5__']Stacky0",
-          "as": "sy0"
-        },
-        {
-          "type": "formula",
-          "expr": "datum.sy0+datum['__7__']",
-          "as": "sy1"
-        },
-        {
-          "type": "__6__",
-          "groupby": [
-            "__1__"
-          ],
-          "sort": {
-            "field": "sourceSort",
-            "order": "descending"
-          },
-          "field": "__7__",
-          "offset": "zero",
-          "as": [
-            "dyi0",
-            "dyi1"
-          ]
-        },
-        {
-          "type": "formula",
-          "expr": "datum.dyi0+datum['__1__']Stacky0",
-          "as": "dy0"
-        },
-        {
-          "type": "formula",
-          "expr": "datum.dy0+datum['__7__']",
-          "as": "dy1"
-        },
-        {
-          "type": "formula",
-          "expr": "((datum['__7__'])/2)+datum.sy0",
-          "as": "syc"
-        },
-        {
-          "type": "formula",
-          "expr": "((datum['__7__'])/2)+datum.dy0",
-          "as": "dyc"
+          "fields": ["target"],
+          "as": ["targetNode"]
         },
         {
           "type": "linkpath",
-          "orient": "horizontal",
-          "shape": "diagonal",
-          "sourceY": {
-            "expr": "scale('y', datum.syc)"
-          },
-          "sourceX": {
-            "expr": "scale('x', toNumber(  datum[\\'__5__\\']Stack))+ bandwidth('x')"
-          },
-          "targetY": {
-            "expr": "scale('y', datum.dyc)"
-          },
-          "targetX": {
-            "expr": "scale('x', datum['__1__']Stack)"
-          }
-        },
-        {
-          "type": "formula",
-          "expr": "range('y')[0]-scale('y', datum['__7__'])",
-          "as": "strokeWidth"
+          "shape": "sankey",
+          "sourceX": { "expr": "datum.sourceNode.id * 150 + nodeWidth" },
+          "sourceY": { "expr": "datum.sourceNode.id * nodePadding + 50" },
+          "targetX": { "expr": "datum.targetNode.id * 150" },
+          "targetY": { "expr": "datum.targetNode.id * nodePadding + 50" }
         }
       ]
     }
   ],
-  "scales": [
-    {
-      "name": "x",
-      "type": "band",
-      "range": "width",
-      "domain": {
-        "data": "finalTable",
-        "field": "__6__",
-        "sort": true
-      },
-      "paddingInner": 0.88
-    },
-    {
-      "name": "y",
-      "type": "linear",
-      "range": "height",
-      "domain": {
-        "data": "finalTable",
-        "field": "y1"
-      },
-      "reverse": false
-    },
-    {
-      "name": "color",
-      "type": "ordinal",
-      "range": {
-        "scheme": "turbo"
-      },
-      "domain": {
-        "data": "stacks",
-        "field": "name",
-        "sort": {
-          "op": "sum",
-          "field": "__6__",
-          "order": "ascending"
-        }
-      }
-    }
-  ],
+
   "marks": [
     {
-      "type": "rect",
-      "from": {
-        "data": "finalTable"
-      },
-      "encode": {
-        "update": {
-          "x": {
-            "scale": "x",
-            "field": "__6__"
-          },
-          "width": {
-            "scale": "x",
-            "band": 1
-          },
-          "y": {
-            "scale": "y",
-            "field": "y0"
-          },
-          "y2": {
-            "scale": "y",
-            "field": "y1"
-          },
-          "fill": {
-            "scale": "color",
-            "field": "name"
-          },
-          "fillOpacity": {
-            "value": 0.75
-          },
-          "strokeWidth": {
-            "value": 0
-          },
-          "stroke": {
-            "scale": "color",
-            "field": "name"
-          }
-        },
-        "hover": {
-          "tooltip": {
-            "signal": "{'Name':datum.name, 'Value':format(datum[\\'__7__\\'], '$') + 'B'}"
-          },
-          "fillOpacity": {
-            "value": 1
-          }
-        }
-      }
-    },
-    {
       "type": "path",
-      "name": "links",
-      "from": {
-        "data": "linkTable"
-      },
-      "clip": true,
+      "from": { "data": "sankey" },
       "encode": {
         "update": {
-          "strokeWidth": {
-            "field": "strokeWidth"
-          },
-          "path": {
-            "field": "path"
-          },
-          "strokeOpacity": {
-            "signal": "0.3"
-          },
-          "stroke": {
-            "field": "__1__",
-            "scale": "color"
-          }
-        },
-        "hover": {
-          "strokeOpacity": {
-            "value": 1
-          },
+          "stroke": { "value": "#999" },
+          "strokeWidth": { "signal": "max(1, datum.count)" },
+          "strokeOpacity": { "value": 0.6 },
+          "path": { "field": "path" },
           "tooltip": {
-            "signal": "{'Source':datum[\\'__5__\\'],'Destination':datum[\\'__1__\\'], 'Value':format(datum[\\'__7__\\'], '$') + 'B'}"
+            "signal": "datum.source + ' → ' + datum.target + ': ' + datum.count"
           }
         }
       }
     },
-    {
-      "type": "group",
-      "name": "labelText",
-      "zindex": 1,
-      "from": {
-        "facet": {
-          "data": "finalTable",
-          "name": "labelFacet",
-          "groupby": [
-            "name",
-            "__6__",
-            "yc",
-            "__7__",
-            "__3__"
-          ]
-        }
-      },
-      "clip": false,
-      "encode": {
-        "update": {
-          "strokeWidth": {
-            "value": 1
-          },
-          "stroke": {
-            "value": "red"
-          },
-          "x": {
-            "signal": "datum['__3__']=='left'?scale('x', datum[\\'__6__\\'])-8 : scale('x', datum[\\'__6__\\']) + (bandwidth('x')) +8"
-          },
-          "yc": {
-            "scale": "y",
-            "signal": "datum.yc"
-          },
-          "width": {
-            "signal": "0"
-          },
-          "height": {
-            "signal": "0"
-          },
-          "fillOpacity": {
-            "signal": "0.1"
-          }
-        }
-      },
-      "marks": [
-        {
-          "type": "text",
-          "name": "heading",
-          "from": {
-            "data": "labelFacet"
-          },
-          "encode": {
-            "update": {
-              "x": {
-                "value": 0
-              },
-              "y": {
-                "value": -2
-              },
-              "text": {
-                "field": "name"
-              },
-              "align": {
-                "signal": "datum['__3__']=='left'?'right':'left'"
-              },
-              "fontWeight": {
-                "value": "normal"
-              }
-            }
-          }
-        },
-        {
-          "type": "text",
-          "name": "amount",
-          "from": {
-            "data": "labelFacet"
-          },
-          "encode": {
-            "update": {
-              "x": {
-                "value": 0
-              },
-              "y": {
-                "value": 12
-              },
-              "text": {
-                "signal": " format(datum['__7__'], '$') + 'B'"
-              },
-              "align": {
-                "signal": "datum['__3__']=='left'?'right':'left'"
-              }
-            }
-          }
-        }
-      ]
-    },
+
     {
       "type": "rect",
-      "from": {
-        "data": "labelText"
-      },
+      "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "x": {
-            "field": "bounds.x1",
-            "offset": -2
-          },
-          "x2": {
-            "field": "bounds.x2",
-            "offset": 2
-          },
-          "y": {
-            "field": "bounds.y1",
-            "offset": -2
-          },
-          "y2": {
-            "field": "bounds.y2",
-            "offset": 2
-          },
-          "fill": {
-            "value": "white"
-          },
-          "opacity": {
-            "value": 0.8
-          },
-          "cornerRadius": {
-            "value": 4
-          }
+          "x": { "expr": "datum.id * 150" },
+          "y": { "expr": "datum.id * nodePadding + 30" },
+          "height": { "value": 20 },
+          "width": { "signal": "nodeWidth" },
+          "fill": { "value": "#1f77b4" },
+          "tooltip": { "signal": "datum.name" }
         }
       }
     },
+
     {
       "type": "text",
-      "data": [
-        {}
-      ],
+      "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "text": {
-            "value": [
-              "Source: https://www.microsoft.com/en-us/investor/earnings/fy-2023-q2/income-statements",
-              "Dataviz: David Bacci"
-            ]
-          },
-          "align": {
-            "value": "left"
-          },
-          "lineHeight": {
-            "value": 16
-          },
-          "fill": {
-            "value": "#595959"
-          },
-          "x": {
-            "signal": "-150"
-          },
-          "y": {
-            "signal": "height +70"
-          },
-          "fontSize": {
-            "value": 10
-          }
+          "text": { "field": "name" },
+          "x": { "expr": "datum.id * 150 + nodeWidth + 5" },
+          "y": { "expr": "datum.id * nodePadding + 40" },
+          "fontSize": { "value": 12 },
+          "align": { "value": "left" }
         }
       }
     }
-  ],
-  "config": {
-    "view": {
-      "stroke": "transparent"
-    },
-    "text": {
-      "fontSize": 13,
-      "fill": "#333333"
-    }
-  }
+  ]
 }
