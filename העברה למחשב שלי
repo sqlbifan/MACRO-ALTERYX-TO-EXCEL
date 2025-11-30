@@ -1,7 +1,7 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
-  "description": "Multi-step Sankey (5 stages: 1,2,3,4,99)",
+  "description": "Multi-step Sankey (stages 1,2,3,4,99)",
 
   "width": 1000,
   "height": 600,
@@ -15,13 +15,12 @@
 
   "data": [
     {
-      "name": "raw",
-      "source": "dataset"
+      "name": "dataset"          // ← Deneb מחבר לפה את הדאטה שלך
     },
 
     {
       "name": "links",
-      "source": "raw",
+      "source": "dataset",
       "transform": [
         {
           "type": "aggregate",
@@ -67,9 +66,10 @@
           "expr": "toNumber(datum.name)"
         },
         {
+          // מיקום אופקי: שלבים 1–4, ו־99 בצד ימין (עמודה רביעית)
           "type": "formula",
           "as": "x",
-          "expr": "datum.stage==99 ? 4 : datum.stage-1"
+          "expr": "datum.stage == 99 ? 4 : datum.stage - 1"
         },
         {
           "type": "window",
@@ -80,12 +80,12 @@
         {
           "type": "formula",
           "as": "y0",
-          "expr": "(datum.rank-1)*(nodePadding+20)+40"
+          "expr": "(datum.rank - 1) * (nodePadding + 20) + 40"
         },
         {
           "type": "formula",
           "as": "y1",
-          "expr": "datum.y0+20"
+          "expr": "datum.y0 + 20"
         }
       ]
     },
@@ -112,14 +112,10 @@
           "type": "linkpath",
           "shape": "diagonal",
           "orient": "horizontal",
-          "sourceX": {
-            "expr": "datum.fromNode.x * 220 + nodeWidth"
-          },
-          "sourceY": { "expr": "(datum.fromNode.y0 + datum.fromNode.y1)/2" },
-          "targetX": {
-            "expr": "datum.toNode.x * 220"
-          },
-          "targetY": { "expr": "(datum.toNode.y0 + datum.toNode.y1)/2" }
+          "sourceX": { "expr": "datum.fromNode.x * 220 + nodeWidth" },
+          "sourceY": { "expr": "(datum.fromNode.y0 + datum.fromNode.y1) / 2" },
+          "targetX": { "expr": "datum.toNode.x * 220" },
+          "targetY": { "expr": "(datum.toNode.y0 + datum.toNode.y1) / 2" }
         }
       ]
     }
@@ -132,11 +128,11 @@
       "encode": {
         "update": {
           "path": { "field": "path" },
-          "stroke": { "value": "#777" },
+          "stroke": { "value": "#777777" },
           "strokeOpacity": { "value": 0.45 },
           "strokeWidth": { "expr": "max(1, datum.value)" },
           "tooltip": {
-            "signal": "'Stage '+datum.FROM+' → '+datum.TO+' : '+datum.value"
+            "signal": "'Stage ' + datum.FROM + ' → ' + datum.TO + ' : ' + datum.value"
           }
         }
       }
@@ -153,7 +149,7 @@
           "width": { "signal": "nodeWidth" },
           "fill": { "signal": "colors[datum.x]" },
           "stroke": { "value": "white" },
-          "tooltip": { "signal": "'Stage '+datum.name" }
+          "tooltip": { "signal": "'Stage ' + datum.name" }
         }
       }
     },
@@ -163,12 +159,12 @@
       "from": { "data": "nodes" },
       "encode": {
         "update": {
-          "text": { "signal": "'Stage '+datum.name" },
+          "text": { "signal": "'Stage ' + datum.name" },
           "x": { "expr": "datum.x * 220 + nodeWidth + 6" },
-          "y": { "expr": "(datum.y0+datum.y1)/2" },
+          "y": { "expr": "(datum.y0 + datum.y1) / 2" },
           "baseline": { "value": "middle" },
           "fontSize": { "value": 12 },
-          "fill": { "value": "#333" }
+          "fill": { "value": "#333333" }
         }
       }
     }
