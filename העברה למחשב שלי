@@ -2,19 +2,20 @@
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
   "data": [
-    { "name": "dataset" }
+    {
+      "name": "CHECK"
+    }
   ],
 
   "marks": [
     {
       "type": "text",
-      "from": { "data": "dataset" },
       "encode": {
         "update": {
-          "x": { "value": 50 },
-          "y": { "value": 50 },
-          "text": { "signal": "datum.FROM" },
-          "fontSize": { "value": 20 }
+          "x": { "value": 40 },
+          "y": { "value": 40 },
+          "text": { "value": "TEST" },
+          "fontSize": { "value": 30 }
         }
       }
     }
