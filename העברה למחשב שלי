@@ -1,169 +1,20 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
-  "width": 1100,
-  "height": 600,
-  "padding": 5,
-
-  "signals": [
-    { "name": "nodeWidth", "value": 22 },
-    { "name": "nodeHeight", "value": 24 },
-    { "name": "hgap", "value": 180 },
-    { "name": "vgap", "value": 40 }
-  ],
-
   "data": [
-    {
-      "name": "dataset"
-    },
-
-    {
-      "name": "links",
-      "source": "dataset",
-      "transform": [
-        {
-          "type": "aggregate",
-          "groupby": ["FROM", "TO"],
-          "fields": ["IDCOUNT"],
-          "ops": ["sum"],
-          "as": ["value"]
-        },
-
-        {
-          "type": "formula",
-          "as": "fromStage",
-          "expr": "datum.FROM=='ליד' ? 1 : datum.FROM=='הזדמנות' ? 2 : datum.FROM=='בקשה' ? 3 : datum.FROM=='ביצוע' ? 4 : datum.FROM=='None' ? 99 : 0"
-        },
-
-        {
-          "type": "formula",
-          "as": "toStage",
-          "expr": "datum.TO=='ליד' ? 1 : datum.TO=='הזדמנות' ? 2 : datum.TO=='בקשה' ? 3 : datum.TO=='ביצוע' ? 4 : datum.TO=='None' ? 99 : 0"
-        }
-      ]
-    },
-
-    {
-      "name": "nodes_raw",
-      "source": "links",
-      "transform": [
-        { "type": "flatten", "fields": ["FROM", "TO"] },
-
-        { "type": "aggregate", "groupby": ["flatten"] },
-
-        {
-          "type": "formula",
-          "as": "stage",
-          "expr": "datum.flatten=='ליד' ? 1 : datum.flatten=='הזדמנות' ? 2 : datum.flatten=='בקשה' ? 3 : datum.flatten=='ביצוע' ? 4 : datum.flatten=='None' ? 99 : 0"
-        },
-
-        { "type": "formula", "as": "name", "expr": "datum.flatten" }
-      ]
-    },
-
-    {
-      "name": "nodes",
-      "source": "nodes_raw",
-      "transform": [
-        {
-          "type": "window",
-          "groupby": ["stage"],
-          "sort": { "field": "name", "order": "ascending" },
-          "ops": ["row_number"],
-          "as": ["row"]
-        },
-
-        {
-          "type": "formula",
-          "as": "x",
-          "expr": "datum.stage==99 ? 4*hgap : (datum.stage-1)*hgap"
-        },
-        {
-          "type": "formula",
-          "as": "y",
-          "expr": "datum.row * vgap"
-        },
-
-        { "type": "identifier", "as": "id" }
-      ]
-    },
-
-    {
-      "name": "links_pos",
-      "source": "links",
-      "transform": [
-        {
-          "type": "lookup",
-          "from": "nodes",
-          "key": "name",
-          "fields": ["FROM"],
-          "as": ["fromNode"]
-        },
-        {
-          "type": "lookup",
-          "from": "nodes",
-          "key": "name",
-          "fields": ["TO"],
-          "as": ["toNode"]
-        },
-
-        {
-          "type": "linkpath",
-          "shape": "diagonal",
-          "orient": "horizontal",
-          "sourceX": { "expr": "datum.fromNode.x + nodeWidth" },
-          "sourceY": { "expr": "datum.fromNode.y + nodeHeight/2" },
-          "targetX": { "expr": "datum.toNode.x" },
-          "targetY": { "expr": "datum.toNode.y + nodeHeight/2" }
-        }
-      ]
-    }
+    { "name": "dataset" }
   ],
 
   "marks": [
     {
-      "type": "path",
-      "from": { "data": "links_pos" },
-      "encode": {
-        "update": {
-          "path": { "field": "path" },
-          "stroke": { "value": "#888" },
-          "strokeOpacity": { "value": 0.45 },
-          "strokeWidth": { "expr": "max(1, datum.value)" },
-          "tooltip": {
-            "signal": "datum.FROM + ' → ' + datum.TO + '\\nכמות: ' + datum.value"
-          }
-        }
-      }
-    },
-
-    {
-      "type": "rect",
-      "from": { "data": "nodes" },
-      "encode": {
-        "update": {
-          "x": { "field": "x" },
-          "y": { "field": "y" },
-          "width": { "signal": "nodeWidth" },
-          "height": { "signal": "nodeHeight" },
-          "fill": { "value": "#69b3a2" },
-          "stroke": { "value": "white" },
-          "tooltip": { "signal": "datum.name" }
-        }
-      }
-    },
-
-    {
       "type": "text",
-      "from": { "data": "nodes" },
+      "from": { "data": "dataset" },
       "encode": {
         "update": {
-          "text": { "field": "name" },
-          "x": { "expr": "datum.x + nodeWidth + 6" },
-          "y": { "expr": "datum.y + nodeHeight/2" },
-          "baseline": { "value": "middle" },
-          "fontSize": { "value": 13 },
-          "fill": { "value": "#333" }
+          "x": { "value": 50 },
+          "y": { "value": 50 },
+          "text": { "signal": "datum.FROM" },
+          "fontSize": { "value": 30 }
         }
       }
     }
