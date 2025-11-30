@@ -1,26 +1,27 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
 
-  "description": "Stable multi-step Sankey",
+  "description": "Multi-step Sankey (5 stages: 1,2,3,4,99)",
 
-  "width": 900,
+  "width": 1000,
   "height": 600,
+  "padding": 5,
 
   "signals": [
-    { "name": "nodeWidth", "value": 20 },
-    { "name": "nodeHeight", "value": 20 },
-    { "name": "hgap", "value": 180 },
-    { "name": "vgap", "value": 40 }
+    { "name": "nodeWidth", "value": 18 },
+    { "name": "nodePadding", "value": 12 },
+    { "name": "colors", "value": ["#8dd3c7", "#ffffb3", "#bebada", "#fb8072", "#80b1d3"] }
   ],
 
   "data": [
     {
-      "name": "dataset"
+      "name": "raw",
+      "source": "dataset"
     },
 
     {
       "name": "links",
-      "source": "dataset",
+      "source": "raw",
       "transform": [
         {
           "type": "aggregate",
@@ -33,34 +34,143 @@
     },
 
     {
-      "name": "nodes",
+      "name": "nodes_raw",
       "source": "links",
       "transform": [
-        { "type": "flatten", "fields": ["FROM", "TO"] },
-
+        {
+          "type": "flatten",
+          "fields": ["FROM", "TO"]
+        },
         {
           "type": "aggregate",
           "groupby": ["flatten"]
         },
-        { "type": "formula", "as": "stage", "expr": "toNumber(datum.flatten)" },
-
         {
-          "type": "window",
-          "groupby": ["stage"],
-          "sort": { "field": "stage" },
-          "ops": ["row_number"],
-          "as": ["row"]
-        },
+          "type": "formula",
+          "as": "name",
+          "expr": "toString(datum.flatten)"
+        }
+      ]
+    },
 
+    {
+      "name": "nodes",
+      "source": "nodes_raw",
+      "transform": [
+        {
+          "type": "identifier",
+          "as": "id"
+        },
+        {
+          "type": "formula",
+          "as": "stage",
+          "expr": "toNumber(datum.name)"
+        },
         {
           "type": "formula",
           "as": "x",
-          "expr": "datum.stage==99 ? 4*hgap : (datum.stage-1)*hgap"
+          "expr": "datum.stage==99 ? 4 : datum.stage-1"
+        },
+        {
+          "type": "window",
+          "ops": ["row_number"],
+          "sort": { "field": "name", "order": "ascending" },
+          "as": ["rank"]
         },
         {
           "type": "formula",
-          "as": "y",
-          "expr": "datum.row * vgap"
+          "as": "y0",
+          "expr": "(datum.rank-1)*(nodePadding+20)+40"
         },
+        {
+          "type": "formula",
+          "as": "y1",
+          "expr": "datum.y0+20"
+        }
+      ]
+    },
 
-        { "type": "identifier", "as": "id" },
+    {
+      "name": "links_pos",
+      "source": "links",
+      "transform": [
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "name",
+          "fields": ["FROM"],
+          "as": ["fromNode"]
+        },
+        {
+          "type": "lookup",
+          "from": "nodes",
+          "key": "name",
+          "fields": ["TO"],
+          "as": ["toNode"]
+        },
+        {
+          "type": "linkpath",
+          "shape": "diagonal",
+          "orient": "horizontal",
+          "sourceX": {
+            "expr": "datum.fromNode.x * 220 + nodeWidth"
+          },
+          "sourceY": { "expr": "(datum.fromNode.y0 + datum.fromNode.y1)/2" },
+          "targetX": {
+            "expr": "datum.toNode.x * 220"
+          },
+          "targetY": { "expr": "(datum.toNode.y0 + datum.toNode.y1)/2" }
+        }
+      ]
+    }
+  ],
+
+  "marks": [
+    {
+      "type": "path",
+      "from": { "data": "links_pos" },
+      "encode": {
+        "update": {
+          "path": { "field": "path" },
+          "stroke": { "value": "#777" },
+          "strokeOpacity": { "value": 0.45 },
+          "strokeWidth": { "expr": "max(1, datum.value)" },
+          "tooltip": {
+            "signal": "'Stage '+datum.FROM+' → '+datum.TO+' : '+datum.value"
+          }
+        }
+      }
+    },
+
+    {
+      "type": "rect",
+      "from": { "data": "nodes" },
+      "encode": {
+        "update": {
+          "x": { "expr": "datum.x * 220" },
+          "y": { "field": "y0" },
+          "y2": { "field": "y1" },
+          "width": { "signal": "nodeWidth" },
+          "fill": { "signal": "colors[datum.x]" },
+          "stroke": { "value": "white" },
+          "tooltip": { "signal": "'Stage '+datum.name" }
+        }
+      }
+    },
+
+    {
+      "type": "text",
+      "from": { "data": "nodes" },
+      "encode": {
+        "update": {
+          "text": { "signal": "'Stage '+datum.name" },
+          "x": { "expr": "datum.x * 220 + nodeWidth + 6" },
+          "y": { "expr": "(datum.y0+datum.y1)/2" },
+          "baseline": { "value": "middle" },
+          "fontSize": { "value": 12 },
+          "fill": { "value": "#333" }
+        }
+      }
+    }
+  ]
+}
