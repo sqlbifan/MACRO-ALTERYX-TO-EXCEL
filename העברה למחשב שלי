@@ -1,174 +1,30 @@
 {
-  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
 
-  "width": 1400,
-  "height": 800,
+  "data": { "name": "dataset" },
 
-  "signals": [
-    { "name": "nodeWidth", "value": 22 },
-    { "name": "nodeHeight", "value": 28 },
-    { "name": "hgap", "value": 260 },
-    { "name": "vgap", "value": 120 }
-  ],
-
-  "data": [
-    { "name": "dataset" },
-
+  "transform": [
     {
-      "name": "links",
-      "source": "dataset",
-      "transform": [
-        {
-          "type": "aggregate",
-          "groupby": ["FROM", "TO"],
-          "fields": ["IDCOUNT"],
-          "ops": ["sum"],
-          "as": ["value"]
-        }
-      ]
-    },
-
-    {
-      "name": "nodes",
-      "source": "links",
-      "transform": [
-        { "type": "flatten", "fields": ["FROM", "TO"] },
-
-        { "type": "aggregate", "groupby": ["flatten"] },
-
-        { "type": "formula", "as": "label", "expr": "datum.flatten" },
-
-        {
-          "type": "formula",
-          "as": "mainStage",
-          "expr": "indexof(['ליד','הזדמנות','הזדמנויות','בקשה','ביצוע'], datum.label) + 1"
-
-        },
-
-        {
-          "type": "formula",
-          "as": "terminal",
-          "expr": "datum.label=='LEAD' || datum.label=='OPP' || datum.label=='APP'"
-        },
-
-        {
-          "type": "formula",
-          "as": "x",
-          "expr": "datum.terminal ? 5*hgap : (datum.mainStage-1)*hgap"
-        },
-
-        {
-          "type": "window",
-          "groupby": ["mainStage", "terminal"],
-          "ops": ["row_number"],
-          "as": ["row"]
-        },
-
-        {
-          "type": "formula",
-          "as": "y",
-          "expr": "datum.terminal ? datum.row*vgap+200 : datum.row*vgap+100"
-        },
-
-        { "type": "identifier", "as": "id" }
-      ]
-    },
-
-    {
-      "name": "links_pos",
-      "source": "links",
-      "transform": [
-        {
-          "type": "lookup",
-          "from": "nodes",
-          "key": "label",
-          "fields": ["FROM"],
-          "as": ["src"]
-        },
-        {
-          "type": "lookup",
-          "from": "nodes",
-          "key": "label",
-          "fields": ["TO"],
-          "as": ["tgt"]
-        },
-
-        {
-          "type": "linkpath",
-          "shape": "diagonal",
-          "orient": "horizontal",
-          "sourceX": { "expr": "datum.src.x + nodeWidth" },
-          "sourceY": { "expr": "datum.src.y + nodeHeight/2" },
-          "targetX": { "expr": "datum.tgt.x" },
-          "targetY": { "expr": "datum.tgt.y + nodeHeight/2" }
-        }
-      ]
+      "sankey": {
+        "node": "name",
+        "source": "FROM",
+        "target": "TO",
+        "value": "IDCOUNT"
+      }
     }
   ],
 
-  "marks": [
-    {
-      "type": "path",
-      "from": { "data": "links_pos" },
-      "encode": {
-        "update": {
-          "path": { "field": "path" },
-          "stroke": [
-            { "test": "datum.TO=='LEAD'", "value": "#e74c3c" },
-            { "test": "datum.TO=='OPP'",  "value": "#000000" },
-            { "test": "datum.TO=='APP'",  "value": "#ff00ff" },
-            { "value": "#bbbbbb" }
-          ],
-          "strokeOpacity": { "value": 0.45 },
-          "strokeWidth": { "expr": "max(1, datum.value)" },
-          "tooltip": {
-            "signal": "datum.FROM + ' → ' + datum.TO + '\\nכמות: ' + datum.value"
-          }
-        }
-      }
+  "mark": "sankey",
+
+  "encoding": {
+    "color": {
+      "field": "name",
+      "type": "nominal"
     },
-
-    {
-      "type": "rect",
-      "from": { "data": "nodes" },
-      "encode": {
-        "update": {
-          "x": { "expr": "datum.x - nodeWidth/2" },
-          "y": { "expr": "datum.y - nodeHeight/2" },
-          "width": { "signal": "nodeWidth" },
-          "height": { "signal": "nodeHeight" },
-          "fill": [
-            { "test": "datum.label=='ליד'",        "value": "#e91e63" },
-            { "test": "datum.label=='הזדמנות' || datum.label=='הזדמנויות'", "value": "#ff9800" },
-            { "test": "datum.label=='בקשה'",      "value": "#673ab7" },
-            { "test": "datum.label=='ביצוע'",     "value": "#2196f3" },
-
-            { "test": "datum.label=='LEAD'", "value": "#e74c3c" },
-            { "test": "datum.label=='OPP'",  "value": "#000000" },
-            { "test": "datum.label=='APP'",  "value": "#ff00ff" },
-
-            { "value": "#aaaaaa" }
-          ],
-          "stroke": { "value": "white" }
-        }
-      }
-    },
-
-    {
-      "type": "text",
-      "from": { "data": "nodes" },
-      "encode": {
-        "update": {
-          "text": { "field": "label" },
-          "x": { "field": "x" },
-          "y": { "field": "y" },
-          "baseline": { "value": "middle" },
-          "align": { "value": "center" },
-          "fontSize": { "value": 16 },
-          "fontWeight": { "value": "bold" },
-          "fill": { "value": "black" }
-        }
-      }
-    }
-  ]
+    "tooltip": [
+      { "field": "source", "title": "ממ" },
+      { "field": "target", "title": "אל" },
+      { "field": "value", "title": "כמות" }
+    ]
+  }
 }
