@@ -41,11 +41,8 @@
         {
           "type": "formula",
           "as": "mainStage",
-          "expr": "datum.label=='ליד' ? 1 : " +
-                  "datum.label=='הזדמנות' ? 2 : " +
-                  "datum.label=='הזדמנויות' ? 2 : " +
-                  "datum.label=='בקשה' ? 3 : " +
-                  "datum.label=='ביצוע' ? 4 : 0"
+          "expr": "indexof(['ליד','הזדמנות','הזדמנויות','בקשה','ביצוע'], datum.label) + 1"
+
         },
 
         {
