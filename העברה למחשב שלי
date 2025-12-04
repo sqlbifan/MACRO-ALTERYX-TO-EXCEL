@@ -1,6 +1,6 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "תרשים Sankey המציג את זרימת הלידים וההזדמנויות בין שלבי המשפך, מותאם לנתונים בעברית ומתאים ל-Deneb.",
+  "description": "תרשים Sankey המציג את זרימת הלידים וההזדמנויות בין שלבי המשפך, מותאם לנתונים בעברית ומתאים ל-Deneb. הטרנספורמציה 'link' הוסרה כדי למנוע שגיאות זיהוי ב-Deneb.",
   "width": 800,
   "height": 500,
   "padding": 10,
@@ -14,14 +14,12 @@
       "name": "sankey",
       "source": "table",
       "transform": [
-        {
-          "type": "link",
-          "source": "FROM",
-          "target": "TO",
-          "value": "IDCOUNT"
-        },
+        // *** תיקון: הוסר הטרנספורמציה "link". הנתונים מוזנים ישירות ל-sankey. ***
         {
           "type": "sankey",
+          "source": "FROM",   // שדה המקור
+          "target": "TO",     // שדה היעד
+          "value": "IDCOUNT", // שדה הכמות
           "links": true,
           "size": [800, 500],
           "nodeAlign": "center",
