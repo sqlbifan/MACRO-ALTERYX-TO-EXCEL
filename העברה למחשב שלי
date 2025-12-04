@@ -1,30 +1,167 @@
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "description": "תרשים Sankey המציג את זרימת הלידים וההזדמנויות בין שלבי המשפך, מותאם לנתונים בעברית ומתאים ל-Deneb.",
+  "width": 800,
+  "height": 500,
+  "padding": 10,
 
-  "data": { "name": "dataset" },
-
-  "transform": [
+  // --- מקורות נתונים (Data Sources) ---
+  "data": [
+    // 1. מקור הנתונים הראשי מ-Power BI
+    { "name": "table" },
+    // 2. יצירת קישורים וצמתים באמצעות טרנספורמציית Sankey
     {
-      "sankey": {
-        "node": "name",
-        "source": "FROM",
-        "target": "TO",
-        "value": "IDCOUNT"
-      }
+      "name": "sankey",
+      "source": "table",
+      "transform": [
+        {
+          "type": "link",
+          "source": "FROM",
+          "target": "TO",
+          "value": "IDCOUNT"
+        },
+        {
+          "type": "sankey",
+          "links": true,
+          "size": [800, 500],
+          "nodeAlign": "center",
+          "nodePadding": 15
+        }
+      ]
+    },
+    // 3. קישורי הזרימה (הקשתות)
+    {
+      "name": "links",
+      "source": "sankey",
+      "transform": [
+        {"type": "filter", "expr": "datum.source !== null && datum.target !== null"}
+      ]
+    },
+    // 4. הצמתים (הבלוקים האנכיים)
+    {
+      "name": "nodes",
+      "source": "sankey",
+      "transform": [
+        {"type": "filter", "expr": "datum.source === null && datum.target === null"}
+      ]
     }
   ],
 
-  "mark": "sankey",
-
-  "encoding": {
-    "color": {
-      "field": "name",
-      "type": "nominal"
+  // --- סקאלות (Scales) ---
+  "scales": [
+    // סקאלת צבעים לצמתים הראשיים (כדי להתאים לצבעי ההדגשה שסימנת)
+    {
+      "name": "color",
+      "type": "ordinal",
+      "domain": ["ליד", "הזדמנויות", "בקשות", "ביצוע", "LEAD", "OPP", "APP", "Start"],
+      "range": [
+        "#f06292",  // ורוד לליד (קרוב למה שסומן)
+        "#ff9800",  // כתום להזדמנויות
+        "#9c27b0",  // סגול לבקשות
+        "#2196f3",  // כחול לביצוע
+        "#8c8c8c",  // LEAD (אפור נשירה)
+        "#6b6b6b",  // OPP (אפור נשירה)
+        "#4a4a4a",  // APP (אפור נשירה)
+        "#eeeeee"   // צבע התחלה וירטואלי
+      ]
     },
-    "tooltip": [
-      { "field": "source", "title": "ממ" },
-      { "field": "target", "title": "אל" },
-      { "field": "value", "title": "כמות" }
-    ]
-  }
+    // סקאלת צבע נפרדת לקישורים (בהירות אפורה לשאר הקישורים)
+    {
+      "name": "linkColor",
+      "type": "ordinal",
+      "domain": ["ליד", "הזדמנויות", "בקשות", "ביצוע"],
+      "range": ["#f06292", "#ff9800", "#9c27b0", "#2196f3"]
+    }
+  ],
+
+  // --- סימנים (Marks) ---
+  "marks": [
+    // 1. סימני הקישורים (Links - הזרימה)
+    {
+      "type": "shape",
+      "from": { "data": "links" },
+      "encode": {
+        "enter": {
+          "shape": { "value": "link" },
+          "stroke": { "value": null },
+          "fillOpacity": { "value": 0.5 },
+          "tooltip": {
+            "signal": "{" +
+              "'ממקור': datum.source.name, " +
+              "'ליעד': datum.target.name, " +
+              "'כמות': format(datum.value, ',')" +
+            "}"
+          }
+        },
+        "update": {
+          "fill": [
+            // צבע מיוחד לקישורי הנשירה
+            {
+              "test": "datum.target.name === 'LEAD' || datum.target.name === 'OPP' || datum.target.name === 'APP'",
+              "scale": "color", "field": "target.name"
+            },
+            // צבע רגיל לשאר הקישורים (לפי מקור)
+            { "scale": "linkColor", "field": "source.name" }
+          ]
+        },
+        "hover": { "fillOpacity": { "value": 0.8 } }
+      }
+    },
+
+    // 2. סימני הצמתים (Nodes - הבלוקים האנכיים)
+    {
+      "type": "rect",
+      "from": { "data": "nodes" },
+      "encode": {
+        "enter": {
+          "x": { "field": "x0" },
+          "x2": { "field": "x1" },
+          "y": { "field": "y0" },
+          "y2": { "field": "y1" },
+          "fill": { "scale": "color", "field": "name" },
+          "stroke": { "value": "#000000" },
+          "strokeWidth": { "value": 0.5 },
+          "cornerRadius": {"value": 3}, // הוספת פינות מעוגלות
+          "tooltip": {
+            "signal": "{" +
+              "'שלב': datum.name, " +
+              "'סך הכל כניסות/יציאות': format(datum.value, ',')" +
+            "}"
+          }
+        },
+        "update": {
+          "fillOpacity": { "value": 1 }
+        },
+        "hover": { "fillOpacity": { "value": 0.8 } }
+      }
+    },
+
+    // 3. תוויות הצמתים (Labels)
+    {
+      "type": "text",
+      "from": { "data": "nodes" },
+      "encode": {
+        "enter": {
+          "text": { "field": "name" },
+          "fill": { "value": "black" },
+          "fontSize": { "value": 14 },
+          "fontWeight": {"value": "bold"},
+          // התאמת מיקום הטקסט (מימין או משמאל לצומת) - משתמשים בכיוון הפוך עבור עברית (RTL)
+          "align": [
+            { "test": "datum.x0 < 400", "value": "left" }, // הצמתים הראשונים משמאל, הטקסט יתחיל משמאלם
+            { "value": "right" } // הצמתים מימין, הטקסט יתחיל מימינם
+          ],
+          "baseline": { "value": "middle" }
+        },
+        "update": {
+          "x": [
+            // הזזה קלה ימינה או שמאלה מהצומת
+            { "test": "datum.x0 < 400", "field": "x0", "offset": 5 }, // לטקסט משמאל לתרשים
+            { "field": "x1", "offset": -5 } // לטקסט מימין לתרשים
+          ],
+          "y": { "signal": "(datum.y0 + datum.y1) / 2" }
+        }
+      }
+    }
+  ]
 }
