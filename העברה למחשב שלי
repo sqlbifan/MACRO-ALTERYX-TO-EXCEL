@@ -1,69 +1,258 @@
 {
   "$schema": "https://vega.github.io/schema/vega/v5.json",
-  "description": "תרשים Sankey המציג את זרימת הלידים וההזדמנויות בין שלבי המשפך, מותאם לנתונים בעברית ומתאים ל-Deneb. הטרנספורמציה 'link' הוסרה כדי למנוע שגיאות זיהוי ב-Deneb.",
-  "width": 800,
-  "height": 500,
-  "padding": 10,
-
-  // --- מקורות נתונים (Data Sources) ---
-  "data": [
-    // 1. מקור הנתונים הראשי מ-Power BI
-    { "name": "table" },
-    // 2. יצירת קישורים וצמתים באמצעות טרנספורמציית Sankey
+  "description": "תרשים Sankey מתקדם המותאם לנתוני משפך בעברית (FROM, TO, IDCOUNT) תוך עקיפת מגבלת הטרנספורמציה 'sankey' ב-Deneb, בהתבסס על לוגיקת Stack & Link של David Bacci.",
+  "width": 1000,
+  "height": 700,
+  "padding": {
+    "bottom": 20,
+    "left": 20,
+    "right": 30,
+    "top": 40
+  },
+  "title": {
+    "text": "זרימת לידים והזדמנויות במשפך",
+    "color": "#005ca5",
+    "fontSize": 24,
+    "dy": 0,
+    "fontWeight": "bold",
+    "offset": 30
+  },
+  "background": "#fafafa",
+  "signals": [
     {
-      "name": "sankey",
-      "source": "table",
-      "transform": [
-        // *** תיקון: הוסר הטרנספורמציה "link". הנתונים מוזנים ישירות ל-sankey. ***
-        {
-          "type": "sankey",
-          "source": "FROM",   // שדה המקור
-          "target": "TO",     // שדה היעד
-          "value": "IDCOUNT", // שדה הכמות
-          "links": true,
-          "size": [800, 500],
-          "nodeAlign": "center",
-          "nodePadding": 15
-        }
-      ]
+      "name": "standardGap",
+      "value": 2,
+      "description": "Gap size between stacked nodes (as a percentage of max value)"
     },
-    // 3. קישורי הזרימה (הקשתות)
     {
-      "name": "links",
-      "source": "sankey",
-      "transform": [
-        {"type": "filter", "expr": "datum.source !== null && datum.target !== null"}
-      ]
+      "name": "base",
+      "value": "center",
+      "description": "How to stack (center or zero)"
     },
-    // 4. הצמתים (הבלוקים האנכיים)
     {
-      "name": "nodes",
-      "source": "sankey",
-      "transform": [
-        {"type": "filter", "expr": "datum.source === null && datum.target === null"}
+      "name": "NodeProps",
+      "value": [
+        // הגדרת המאפיינים לכל צומת: stack (עמודה), sort (סדר), labels (יישור טקסט)
+        // stack 0: ליד, stack 1: הזדמנויות, stack 2: בקשות, stack 3: ביצוע
+        {"name": "ליד", "stack": 0, "sort": 10, "labels": "left", "gap": 0},
+        {"name": "Start", "stack": 1, "sort": 10, "labels": "left", "gap": 0}, // לידים שנכנסו ישירות להזדמנויות
+        {"name": "הזדמנויות", "stack": 1, "sort": 10, "labels": "right", "gap": 0},
+        {"name": "LEAD", "stack": 1, "sort": 0, "labels": "left", "gap": 5}, // נשירה מליד
+        {"name": "בקשות", "stack": 2, "sort": 10, "labels": "right", "gap": 0},
+        {"name": "OPP", "stack": 2, "sort": 0, "labels": "left", "gap": 5}, // נשירה מהזדמנויות
+        {"name": "ביצוע", "stack": 3, "sort": 10, "labels": "right", "gap": 0},
+        {"name": "APP", "stack": 3, "sort": 0, "labels": "left", "gap": 5} // נשירה מבקשות
       ]
     }
   ],
+  "data": [
+    // 1. הנתונים הגולמיים מ-Power BI (שדות FROM, TO, IDCOUNT)
+    { "name": "dataset" },
+    // 2. הכנת טבלת קלט עם שמות שדות מותאמים
+    {
+      "name": "input",
+      "source": "dataset",
+      "transform": [
+        {"type": "formula", "as": "source", "expr": "datum.FROM"},
+        {"type": "formula", "as": "destination", "expr": "datum.TO"},
+        {"type": "formula", "as": "value", "expr": "datum.IDCOUNT"}
+      ]
+    },
+    // 3. יצירת טבלת הצמתים (Stacks) והוספת מאפייני הצומת (Stack, Sort, Labels)
+    {
+      "name": "stacks",
+      "source": "input",
+      "transform": [
+        {"type": "filter", "expr": "datum.source != null"},
+        // יצירת מערך המכיל גם את המקור וגם את היעד עבור הקישור
+        {"type": "formula", "as": "end", "expr": "['source','destination']"},
+        {"type": "formula", "as": "name", "expr": "[ datum.source,datum.destination]"},
+        {"type": "project", "fields": ["end", "name", "value"]},
+        {"type": "flatten", "fields": ["end", "name"]},
+        // *** Lookup: מציאת מאפייני הצומת באמצעות ה-Signal (NodeProps) ***
+        {
+          "type": "lookup",
+          "from": { "data": "NodeProps" },
+          "key": "name",
+          "values": ["stack", "sort", "gap", "labels"],
+          "fields": ["name"],
+          "as": ["stack", "sort", "gap", "labels"]
+        },
+        // סינון רשומות שה-lookup כשל בהן (אם יש צומת לא מוגדר ב-NodeProps)
+        {"type": "filter", "expr": "datum.stack != null"},
+        
+        // אגרגציה (סיכום) של הערכים לפי שם הצומת והעמודה
+        {
+          "type": "aggregate",
+          "fields": ["value", "stack", "sort", "gap", "labels"],
+          "groupby": ["end", "name"],
+          "ops": ["sum", "max", "max", "max", "max"],
+          "as": ["value", "stack", "sort", "gap", "labels"]
+        },
+        {
+          "type": "aggregate",
+          "fields": ["value", "stack", "sort", "gap", "labels"],
+          "groupby": ["name"],
+          "ops": ["max", "max", "max", "max", "max"],
+          "as": ["value", "stack", "sort", "gap", "labels"]
+        },
+        {"type": "formula", "as": "gap", "expr": "datum.gap ? datum.gap : 0"}
+      ]
+    },
+    // 4. חישוב הערך המקסימלי (לנרמול רווחים)
+    {
+      "name": "maxValue",
+      "source": ["stacks"],
+      "transform": [
+        {"type": "aggregate", "fields": ["value"], "groupby": ["stack"], "ops": ["sum"], "as": ["value"]},
+        {"type": "aggregate", "fields": ["value"], "ops": ["max"], "as": ["value"]}
+      ]
+    },
+    // 5. חישוב הרווחים (Spacers) וערימה (Stacking) של הצמתים בעמודות
+    {
+      "name": "plottedStacks",
+      "source": ["stacks"],
+      "transform": [
+        // הוספת רווחים (Gap) בין צמתים (כדי למנוע מגע)
+        {"type": "formula", "as": "spacer", "expr": "(data('maxValue')[0].value / 100) * (standardGap + datum.gap)"},
+        {"type": "formula", "as": "type", "expr": "['data','spacer']"},
+        {"type": "formula", "as": "spacedValue", "expr": "[datum.value, datum.spacer]"},
+        {"type": "flatten", "fields": ["type", "spacedValue"]},
+        // ביצוע הערימה (Stack)
+        {
+          "type": "stack",
+          "groupby": ["stack"],
+          "sort": {"field": "sort", "order": "descending"},
+          "field": "spacedValue",
+          "offset": {"signal": "base"}
+        },
+        // חישוב מרכז הצומת (yc)
+        {"type": "formula", "expr": "((datum.value) / 2) + datum.y0", "as": "yc"}
+      ]
+    },
+    // 6. סינון הצמתים ה"אמיתיים" בלבד (בלי ה-Spacers)
+    {
+      "name": "finalTable",
+      "source": ["plottedStacks"],
+      "transform": [
+        {"type": "filter", "expr": "datum.type == 'data'"}
+      ]
+    },
+    // 7. יצירת טבלת הקישורים (Link Table) וחישובי הקואורדינטות של הזרימה
+    {
+      "name": "linkTable",
+      "source": ["input"],
+      "transform": [
+        {"type": "filter", "expr": "datum.source != null"},
+        // Lookup עבור הצומת המקור (Source)
+        {
+          "type": "lookup",
+          "from": "finalTable",
+          "key": "name",
+          "values": ["y0", "y1", "stack", "sort"],
+          "fields": ["source"],
+          "as": ["sourceStacky0", "sourceStacky1", "sourceStack", "sourceSort"]
+        },
+        // Lookup עבור צומת היעד (Destination)
+        {
+          "type": "lookup",
+          "from": "finalTable",
+          "key": "name",
+          "values": ["y0", "y1", "stack", "sort"],
+          "fields": ["destination"],
+          "as": ["destinationStacky0", "destinationStacky1", "destinationStack", "destinationSort"]
+        },
+        // ******************** חישוב קואורדינטות הקישור במקור ********************
+        // ערימה בתוך המקור (Stacking within Source)
+        {
+          "type": "stack",
+          "groupby": ["source"],
+          "sort": {"field": "destinationSort", "order": "descending"},
+          "field": "value",
+          "offset": "zero",
+          "as": ["syi0", "syi1"]
+        },
+        // הוספת ה-y0 של הצומת המקור לחישוב
+        {"type": "formula", "expr": "datum.syi0 + datum.sourceStacky0", "as": "sy0"},
+        {"type": "formula", "expr": "datum.sy0 + datum.value", "as": "sy1"},
+        // ******************** חישוב קואורדינטות הקישור ביעד ********************
+        // ערימה בתוך היעד (Stacking within Destination)
+        {
+          "type": "stack",
+          "groupby": ["destination"],
+          "sort": {"field": "sourceSort", "order": "descending"},
+          "field": "value",
+          "offset": "zero",
+          "as": ["dyi0", "dyi1"]
+        },
+        // הוספת ה-y0 של הצומת היעד לחישוב
+        {"type": "formula", "expr": "datum.dyi0 + datum.destinationStacky0", "as": "dy0"},
+        {"type": "formula", "expr": "datum.dy0 + datum.value", "as": "dy1"},
 
-  // --- סקאלות (Scales) ---
+        // חישוב מרכז הקישור (ל-linkpath)
+        {"type": "formula", "expr": "((datum.value) / 2) + datum.sy0", "as": "syc"},
+        {"type": "formula", "expr": "((datum.value) / 2) + datum.dy0", "as": "dyc"},
+        // *** יצירת הנתיב (Path) המעוקל של Sankey באמצעות linkpath ***
+        {
+          "type": "linkpath",
+          "orient": "horizontal",
+          "shape": "diagonal",
+          // Source Y (מרכז הקישור במקור, לאחר סקאלה)
+          "sourceY": {"expr": "scale('y', datum.syc)"},
+          // Source X (מיקום ה-X של הצומת המקור, בתוספת רוחב הצומת)
+          "sourceX": {"expr": "scale('x', toNumber(datum.sourceStack)) + bandwidth('x')"},
+          // Target Y (מרכז הקישור ביעד, לאחר סקאלה)
+          "targetY": {"expr": "scale('y', datum.dyc)"},
+          // Target X (מיקום ה-X של הצומת היעד)
+          "targetX": {"expr": "scale('x', datum.destinationStack)"}
+        },
+        // חישוב רוחב הקו (בהתאם ל-Value)
+        {"type": "formula", "expr": "range('y')[0] - scale('y', datum.value)", "as": "strokeWidth"}
+      ]
+    }
+  ],
   "scales": [
-    // סקאלת צבעים לצמתים הראשיים (כדי להתאים לצבעי ההדגשה שסימנת)
+    {
+      "name": "x",
+      "type": "band",
+      "range": "width",
+      "domain": {
+        "data": "finalTable",
+        "field": "stack",
+        "sort": true
+      },
+      "paddingInner": 0.88
+    },
+    {
+      "name": "y",
+      "type": "linear",
+      "range": "height",
+      "domain": {
+        "data": "finalTable",
+        "field": "y1"
+      },
+      "reverse": false
+    },
     {
       "name": "color",
       "type": "ordinal",
-      "domain": ["ליד", "הזדמנויות", "בקשות", "ביצוע", "LEAD", "OPP", "APP", "Start"],
       "range": [
-        "#f06292",  // ורוד לליד (קרוב למה שסומן)
+        "#f06292",  // ורוד לליד
         "#ff9800",  // כתום להזדמנויות
         "#9c27b0",  // סגול לבקשות
         "#2196f3",  // כחול לביצוע
-        "#8c8c8c",  // LEAD (אפור נשירה)
-        "#6b6b6b",  // OPP (אפור נשירה)
-        "#4a4a4a",  // APP (אפור נשירה)
-        "#eeeeee"   // צבע התחלה וירטואלי
-      ]
+        "#8c8c8c",  // נשירה (LEAD, OPP, APP)
+        "#6b6b6b",  // נשירה
+        "#4a4a4a",  // נשירה
+        "#eeeeee"   // Start
+      ],
+      "domain": {
+        "data": "stacks",
+        "field": "name",
+        "sort": {"op": "sum", "field": "stack", "order": "ascending"}
+      }
     },
-    // סקאלת צבע נפרדת לקישורים (בהירות אפורה לשאר הקישורים)
+    // סקאלת צבע לקישורים (כדי לצבוע לפי המקור)
     {
       "name": "linkColor",
       "type": "ordinal",
@@ -71,95 +260,135 @@
       "range": ["#f06292", "#ff9800", "#9c27b0", "#2196f3"]
     }
   ],
-
-  // --- סימנים (Marks) ---
   "marks": [
-    // 1. סימני הקישורים (Links - הזרימה)
-    {
-      "type": "shape",
-      "from": { "data": "links" },
-      "encode": {
-        "enter": {
-          "shape": { "value": "link" },
-          "stroke": { "value": null },
-          "fillOpacity": { "value": 0.5 },
-          "tooltip": {
-            "signal": "{" +
-              "'ממקור': datum.source.name, " +
-              "'ליעד': datum.target.name, " +
-              "'כמות': format(datum.value, ',')" +
-            "}"
-          }
-        },
-        "update": {
-          "fill": [
-            // צבע מיוחד לקישורי הנשירה
-            {
-              "test": "datum.target.name === 'LEAD' || datum.target.name === 'OPP' || datum.target.name === 'APP'",
-              "scale": "color", "field": "target.name"
-            },
-            // צבע רגיל לשאר הקישורים (לפי מקור)
-            { "scale": "linkColor", "field": "source.name" }
-          ]
-        },
-        "hover": { "fillOpacity": { "value": 0.8 } }
-      }
-    },
-
-    // 2. סימני הצמתים (Nodes - הבלוקים האנכיים)
+    // 1. צמתים (הבלוקים האנכיים)
     {
       "type": "rect",
-      "from": { "data": "nodes" },
+      "from": {"data": "finalTable"},
       "encode": {
-        "enter": {
-          "x": { "field": "x0" },
-          "x2": { "field": "x1" },
-          "y": { "field": "y0" },
-          "y2": { "field": "y1" },
-          "fill": { "scale": "color", "field": "name" },
-          "stroke": { "value": "#000000" },
-          "strokeWidth": { "value": 0.5 },
-          "cornerRadius": {"value": 3}, // הוספת פינות מעוגלות
-          "tooltip": {
-            "signal": "{" +
-              "'שלב': datum.name, " +
-              "'סך הכל כניסות/יציאות': format(datum.value, ',')" +
-            "}"
-          }
-        },
         "update": {
-          "fillOpacity": { "value": 1 }
+          "x": {"scale": "x", "field": "stack"},
+          "width": {"scale": "x", "band": 1},
+          "y": {"scale": "y", "field": "y0"},
+          "y2": {"scale": "y", "field": "y1"},
+          "fill": {"scale": "color", "field": "name"},
+          "fillOpacity": {"value": 0.9},
+          "strokeWidth": {"value": 0},
+          "stroke": {"value": "#333333"}
         },
-        "hover": { "fillOpacity": { "value": 0.8 } }
+        "hover": {
+          "tooltip": {
+            "signal": "{'שלב': datum.name, 'כמות': format(datum.value, ',') + ' יח'}"
+          },
+          "fillOpacity": {"value": 1}
+        }
       }
     },
-
-    // 3. תוויות הצמתים (Labels)
+    // 2. קישורים (הזרימה)
     {
-      "type": "text",
-      "from": { "data": "nodes" },
+      "type": "path",
+      "name": "links",
+      "from": {"data": "linkTable"},
+      "clip": true,
       "encode": {
-        "enter": {
-          "text": { "field": "name" },
-          "fill": { "value": "black" },
-          "fontSize": { "value": 14 },
-          "fontWeight": {"value": "bold"},
-          // התאמת מיקום הטקסט (מימין או משמאל לצומת) - משתמשים בכיוון הפוך עבור עברית (RTL)
-          "align": [
-            { "test": "datum.x0 < 400", "value": "left" }, // הצמתים הראשונים משמאל, הטקסט יתחיל משמאלם
-            { "value": "right" } // הצמתים מימין, הטקסט יתחיל מימינם
-          ],
-          "baseline": { "value": "middle" }
-        },
         "update": {
-          "x": [
-            // הזזה קלה ימינה או שמאלה מהצומת
-            { "test": "datum.x0 < 400", "field": "x0", "offset": 5 }, // לטקסט משמאל לתרשים
-            { "field": "x1", "offset": -5 } // לטקסט מימין לתרשים
+          "strokeWidth": {"field": "strokeWidth"},
+          "path": {"field": "path"},
+          "strokeOpacity": {"value": 0.4},
+          // צביעת הקישור לפי צומת המקור
+          "stroke": [
+            {
+              "test": "datum.destination === 'LEAD' || datum.destination === 'OPP' || datum.destination === 'APP'",
+              "scale": "color", "field": "destination"
+            },
+            {"scale": "linkColor", "field": "source"}
           ],
-          "y": { "signal": "(datum.y0 + datum.y1) / 2" }
+          "fill": "none"
+        },
+        "hover": {
+          "strokeOpacity": {"value": 0.8},
+          "tooltip": {
+            "signal": "{'ממקור': datum.source, 'ליעד': datum.destination, 'כמות': format(datum.value, ',') + ' יח'}"
+          }
+        }
+      }
+    },
+    // 3. קבוצת טקסט (כדי לאפשר רקע לתוויות)
+    {
+      "type": "group",
+      "name": "labelText",
+      "zindex": 1,
+      "from": {
+        "facet": {
+          "data": "finalTable",
+          "name": "labelFacet",
+          "groupby": ["name", "stack", "yc", "value", "labels"]
+        }
+      },
+      "clip": false,
+      "encode": {
+        "update": {
+          "x": {
+            // הזזת התווית משמאל או מימין לצומת בהתאם ל-labels (left/right)
+            "signal": "datum.labels=='left' ? scale('x', datum.stack)-8 : scale('x', datum.stack) + (bandwidth('x')) + 8"
+          },
+          "yc": {"scale": "y", "signal": "datum.yc"},
+          "width": {"signal": "0"},
+          "height": {"signal": "0"}
+        }
+      },
+      "marks": [
+        // 3.1. שם הצומת (טקסט עליון)
+        {
+          "type": "text",
+          "name": "heading",
+          "from": {"data": "labelFacet"},
+          "encode": {
+            "update": {
+              "x": {"value": 0},
+              "y": {"value": -2},
+              "text": {"field": "name"},
+              // יישור: הצמתים בשמאל מיושרים לימין וההיפך, לשיפור הקריאות.
+              "align": {"signal": "datum.labels=='left' ? 'right' : 'left'"},
+              "fontWeight": {"value": "normal"}
+            }
+          }
+        },
+        // 3.2. הערך של הצומת (טקסט תחתון)
+        {
+          "type": "text",
+          "name": "amount",
+          "from": {"data": "labelFacet"},
+          "encode": {
+            "update": {
+              "x": {"value": 0},
+              "y": {"value": 12},
+              "text": {"signal": " format(datum.value, ',') + ' יח'"},
+              "align": {"signal": "datum.labels=='left' ? 'right' : 'left'"}
+            }
+          }
+        }
+      ]
+    },
+    // 4. רקע לבן לטקסט (כדי לשפר קריאות מעל הקישורים)
+    {
+      "type": "rect",
+      "from": {"data": "labelText"},
+      "encode": {
+        "update": {
+          "x": {"field": "bounds.x1", "offset": -2},
+          "x2": {"field": "bounds.x2", "offset": 2},
+          "y": {"field": "bounds.y1", "offset": -2},
+          "y2": {"field": "bounds.y2", "offset": 2},
+          "fill": {"value": "white"},
+          "opacity": {"value": 0.8},
+          "cornerRadius": {"value": 4}
         }
       }
     }
-  ]
+  ],
+  "config": {
+    "view": {"stroke": "transparent"},
+    "text": {"fontSize": 13, "fill": "#333333"}
+  }
 }
