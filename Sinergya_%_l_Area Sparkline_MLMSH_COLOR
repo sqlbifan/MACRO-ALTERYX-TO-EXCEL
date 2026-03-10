@@ -1,30 +1,53 @@
 Sinergya_%_l_Area Sparkline_MLMSH_COLOR =
-VAR line =
+VAR LineTable =
     LINESTX(
         ALL('Calendar'[MONTH_START2]),
         [Sinergya_%_l],
         'Calendar'[MONTH_START2]
     )
-VAR slope = SELECTCOLUMNS(line, [Slope1])
-VAR intercept = SELECTCOLUMNS(line, [Intercept])
-VAR x = SELECTEDVALUE('Calendar'[MONTH_START2])
-VAR y = x * slope + intercept
 
-VAR LineColour = IF(Slope > 0, "%23118DFF", "%23FF0000")
+VAR SlopeValue = MAXX(LineTable, [Slope1])
+VAR InterceptValue = MAXX(LineTable, [Intercept1])
+
+VAR LineColour = IF(SlopeValue > 0, "%23118DFF", "%23FF0000")
 VAR PointColour = "white"
 
--- Canvas size
 VAR ChartWidth = 200
 VAR ChartHeight = 40
 
--- Inner plot area padding
 VAR LeftPad = 6
 VAR RightPad = 6
-VAR TopPad = 4
-VAR BottomPad = 4
+VAR TopPad = 6
+VAR BottomPad = 8
 
 VAR PlotWidth = ChartWidth - LeftPad - RightPad
 VAR PlotHeight = ChartHeight - TopPad - BottomPad
+
+VAR XMinDate = MIN('Calendar'[MONTH_START2])
+VAR XMaxDate = MAX('Calendar'[MONTH_START2])
+
+VAR YMinValue =
+    MINX(
+        ALLSELECTED(
+            'Calendar'[MONTH_START2],
+            'malmash_bankait_converter'[zone_mlmsh],
+            'malmash_bankait_converter'[Branch_name_mlmsh]
+        ),
+        CALCULATE([Sinergya_%_l])
+    )
+
+VAR YMaxValue =
+    MAXX(
+        ALLSELECTED(
+            'Calendar'[MONTH_START2],
+            'malmash_bankait_converter'[zone_mlmsh],
+            'malmash_bankait_converter'[Branch_name_mlmsh]
+        ),
+        CALCULATE([Sinergya_%_l])
+    )
+
+VAR YRange = IF(YMaxValue - YMinValue = 0, 1, YMaxValue - YMinValue)
+VAR XRange = IF(XMaxDate - XMinDate = 0, 1, XMaxDate - XMinDate)
 
 VAR Defs =
     "<defs>
@@ -35,26 +58,6 @@ VAR Defs =
         </linearGradient>
     </defs>"
 
-VAR XMinDate = MIN('Calendar'[MONTH_START2])
-VAR XMaxDate = MAX('Calendar'[MONTH_START2])
-
-VAR YMinValue =
-    MINX(
-        VALUES('Calendar'[MONTH_START2]),
-        CALCULATE([Sinergya_%_l])
-    )
-VAR YMaxValue =
-    MAXX(
-        VALUES('Calendar'[MONTH_START2]),
-        CALCULATE([Sinergya_%_l])
-    )
-
-VAR YRange =
-    IF(YMaxValue - YMinValue = 0, 1, YMaxValue - YMinValue)
-
-VAR XRange =
-    IF(XMaxDate - XMinDate = 0, 1, XMaxDate - XMinDate)
-
 VAR SparklineTable =
     ADDCOLUMNS(
         SUMMARIZE('Calendar', 'Calendar'[MONTH_START2]),
@@ -63,10 +66,19 @@ VAR SparklineTable =
                 LeftPad +
                 PlotWidth * DIVIDE('Calendar'[MONTH_START2] - XMinDate, XRange)
             ),
+        "YRaw",
+            TopPad +
+            PlotHeight * (1 - DIVIDE([Sinergya_%_l] - YMinValue, YRange)),
         "Y",
-            INT(
-                TopPad +
-                PlotHeight * (1 - DIVIDE([Sinergya_%_l] - YMinValue, YRange))
+            MAX(
+                TopPad,
+                MIN(
+                    TopPad + PlotHeight,
+                    INT(
+                        TopPad +
+                        PlotHeight * (1 - DIVIDE([Sinergya_%_l] - YMinValue, YRange))
+                    )
+                )
             )
     )
 
@@ -78,16 +90,16 @@ VAR Lines =
         'Calendar'[MONTH_START2]
     )
 
-VAR LastSparkYValue =
-    MAXX(
-        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
-        [Y]
-    )
-
 VAR LastSparkXValue =
     MAXX(
         FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
         [X]
+    )
+
+VAR LastSparkYValue =
+    MAXX(
+        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
+        [Y]
     )
 
 VAR BottomY = TopPad + PlotHeight
@@ -96,23 +108,31 @@ VAR SVGImageURL =
     IF(
         HASONEVALUE('malmash_bankait_converter'[zone_mlmsh]),
         "data:image/svg+xml;utf8," &
-        "<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' width='200' height='40' viewBox='0 0 200 40'>" &
+        "<svg xmlns='http://www.w3.org/2000/svg'
+              width='200' height='40'
+              viewBox='0 0 200 40'
+              overflow='hidden'>" &
             Defs &
 
-            -- area fill
-            "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='transparent' stroke-width='0' points='" &
+            "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='none' points='" &
                 LeftPad & "," & BottomY & " " &
                 Lines & " " &
                 (LeftPad + PlotWidth) & "," & BottomY &
             "' />" &
 
-            -- line
-            "<polyline fill='none' stroke='" & LineColour & "' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' points='" &
-                Lines &
-            "' />" &
+            "<polyline fill='none'
+                       stroke='" & LineColour & "'
+                       stroke-linecap='round'
+                       stroke-linejoin='round'
+                       stroke-width='3'
+                       points='" & Lines & "' />" &
 
-            -- last point
-            "<circle cx='" & LastSparkXValue & "' cy='" & LastSparkYValue & "' r='4' stroke='" & LineColour & "' stroke-width='2' fill='" & PointColour & "' />" &
+            "<circle cx='" & LastSparkXValue & "'
+                     cy='" & LastSparkYValue & "'
+                     r='4'
+                     stroke='" & LineColour & "'
+                     stroke-width='2'
+                     fill='" & PointColour & "' />" &
         "</svg>",
         BLANK()
     )
