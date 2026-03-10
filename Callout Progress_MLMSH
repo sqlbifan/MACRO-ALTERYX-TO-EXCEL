@@ -1,18 +1,25 @@
-Callout Progress_MLMSH = 
-VAR Actual = [Sinergya_%_l]--[Mimush_measure_L]
-VAR Target = 0.65 --[SYNERGYA_TARGET_ALL_IVUN]
---- Field to sort the measures by in a table ---
-VAR SORT = [Sinergya_%_l]
---- Progress Bar Info ---
-VAR PERCENTAGEFILL = MAXX(VALUES('malmash_bankait_converter'[zone_mlmsh]),Actual/Target)*100
---VAR BarColour = "Navy"
-VAR BarColour = SWITCH(TRUE(), PERCENTAGEFILL >= 100, "#15B29E", PERCENTAGEFILL >= 85,"#FCCD50", "#5D5D67" )
-RETURN
-IF(HASONEVALUE('malmash_bankait_converter'[zone_mlmsh]),
 "data:image/svg+xml;utf8," & 
-"<svg desc = '" & SORT & "' width='100' height='30' viewBox='-2 -2 105 20' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' display= 'block'  overflow='visible'>
-<rect id='track' x='0' y='15' rx='0' ry='0' width='100' height='10' fill='#D0D0D0' />
-<rect id='fill' x='0' y='15' rx='0' ry='0' width="& "'"& PERCENTAGEFILL &"'"&" height='10' fill='"&BarColour&"'></rect>
-<text x='0' y='8' font-weight='bold' font-family='Segoe UI, sans-serif' >"&FORMAT(PERCENTAGEFILL/100, "0%")&"</text>
+"<svg desc = '" & SORT & "' width='100' height='30' viewBox='-2 -2 105 20'
+xmlns='http://www.w3.org/2000/svg' overflow='visible'>
+
+<g transform='translate(100,0) scale(-1,1)'>
+
+<rect id='track' x='0' y='15' width='100' height='10' fill='#D0D0D0'/>
+
+<rect id='fill'
+x='0'
+y='15'
+width='"&PERCENTAGEFILL&"'
+height='10'
+fill='"&BarColour&"' />
+
+</g>
+
+<text x='100' y='8'
+text-anchor='end'
+font-weight='bold'
+font-family='Segoe UI, sans-serif'>"&
+FORMAT(PERCENTAGEFILL/100,"0%")&
+"</text>
+
 </svg>"
-, BLANK())
