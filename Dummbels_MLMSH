@@ -14,7 +14,7 @@ VAR SORT = [Sinergya_%_l]
 VAR Result = IF(HASONEVALUE('malmash_bankait_converter'[zone_mlmsh]),
 "data:image/svg+xml;utf8," & "
     <svg desc = '" & SORT & "' width='200' height='30' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='-4 0 108 20' overflow='visible'>
-        <rect id='track' x="&"'"&MINNODE&"'"&" y='9' width="&"'"&MAXNODE&"'"&" height='2' fill='#D0D0D0'/>
+        <rect id='track' x="&"'"&MINNODE&"'"&" y='9' width="&"'"&(MAXNODE-MINNODE)&"'"&" height='2' fill='#D0D0D0'/>
         <circle id='cat_1' cx="&"'"&NODE_1&"'"&" cy='10' r='6' width='2' height='20' fill='#D0D0D0'></circle>
         <circle id='cat_2' cx="&"'"&NODE_2&"'"&" cy='10' r='6' width='2' height='20' fill='"&BarColour&"'></circle>
         <text x='0' y='10' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='10' >"&FORMAT(Actual, "0.00")&"</text>
