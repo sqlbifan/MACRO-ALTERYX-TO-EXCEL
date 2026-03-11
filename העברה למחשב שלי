@@ -1,106 +1,18 @@
-# Sankey = --
--- Event "None" to show single events without following in Sankey Chart visual
--- Use direct value to avoid executing LOOKUPVALUE for each measure
---
-VAR _NoneEvent = 99
-
---
---  If no FirstEvent is selected, then we need show all events.
---  If the event selection includes some FirstEvents, then we will
---  limit the analysis to only the customers who had their
---  first event as one of the selected ones
---
-VAR _AllFirstContactEventTypes = ALLSELECTED ( Contacts[FirstEventTypeId] )
-VAR _SelectedEventTypes = VALUES ( 'Event Types'[EventTypeId] )
-VAR _ShowAllEvents = ISEMPTY ( INTERSECT ( _AllFirstContactEventTypes, _SelectedEventTypes ) )
-
---
---  FirstContactEventTypes contains the selection of the first events to be considered.
---  It may include all first events (if none is selected), or only some of them
---  (if the user removed some first events from the list).
---  It is worth noting that FirstContactEventTypes, despite containing event types,
---  filters Contact. Indeed, its content has the lineage of Contacts[FirstEventTypeId]
---
-VAR _FirstContactEventTypes =
-    FILTER (
-        _AllFirstContactEventTypes,
-        OR ( _ShowAllEvents, Contacts[FirstEventTypeId] IN VALUES ( 'Event Types'[EventTypeId] ) )
-    )
---
---  EventsWithFrom contains all the events matching the FROM selection in the Sankey
---  Beacuse we use FirstContactEventTypes, the selection only includes events that
---  happened to contacts whose first event is among the selected first events.
---
---  TREATAS transfers the filter from Sankey From to Events
---
-VAR _EventsWithFrom =
-    CALCULATETABLE (
-        'Events',
-        _FirstContactEventTypes,
-        KEEPFILTERS ( 'Events'[EventTypeId] <> _NoneEvent ),
-        KEEPFILTERS (
-            TREATAS ( VALUES ( 'Sankey From'[EventTypeId] ), 'Events'[EventTypeId] )
-        )
-    )
---
---  AllselectedEvents contains all the visible events, limiting its scope to the
---  contacts whose first event has been selected.
---  This variable is useful to find the NEXT event, in the next variable.
---  
---
-VAR _AllselectedEvents =
-    CALCULATETABLE (
-        'Events',
-        _FirstContactEventTypes,
-        ALLSELECTED ( 'Event Types' )
-    )
-    
---
---  Here we compute the destination state.
---
---  For each event, it finds the next one in the current selection.
---  If there are no TO events, then the row will be removed by
---  the Sankey. In order to avoid this behavior, only for the start
---  events, we have a further IF that checks the very special case 
---  of the first event, sending those events to NONE.
---
-VAR _EventsWithFromAndTo =
-    ADDCOLUMNS (
-        _EventsWithFrom,
-        "@ToId",
-            COALESCE (
-                SELECTCOLUMNS (
-                    OFFSET (
-                        1,
-                        _AllselectedEvents,
-                        ORDERBY ( 'Events'[EventTypeId], ASC ),
-                        PARTITIONBY ( Events[ContactId] ),
-                        MATCHBY ( 'Events'[EventTypeId], 'Events'[ContactId] )
-                    ),
-                    "@ToID", 'Events'[EventTypeId]
-                ),
-                IF (
-                    RANK (
-                        DENSE,
-                        _AllselectedEvents,
-                        ORDERBY ( 'Events'[EventTypeId], ASC ),
-                        PARTITIONBY ( 'Events'[ContactId] ),
-                        MATCHBY ( 'Events'[EventTypeId], 'Events'[ContactId] )
-                    ) = 1,
-                    _NoneEvent
-                )
-            )
-    )
---
---  Now it is time to reduce the calculation to only the events that match the
---  Destination filter coming from the Sankey.
---  This time we cannot use TREATAS, because the events are stored in a variable,
---  therefore we use FILTER and IN.
---
-VAR Result =
-    COUNTROWS (
-        FILTER ( _EventsWithFromAndTo, [@ToId] IN VALUES ( 'Sankey To'[EventTypeId] ) )
-    )
-    
+Callout Progress_MLMSH = 
+VAR Actual = [Sinergya_%_l]--[Mimush_measure_L]
+VAR Target = 0.65 --[SYNERGYA_TARGET_ALL_IVUN]
+--- Field to sort the measures by in a table ---
+VAR SORT = [Sinergya_%_l]
+--- Progress Bar Info ---
+VAR PERCENTAGEFILL = MAXX(VALUES('malmash_bankait_converter'[zone_mlmsh]),Actual/Target)*100
+--VAR BarColour = "Navy"
+VAR BarColour = SWITCH(TRUE(), PERCENTAGEFILL >= 100, "#15B29E", PERCENTAGEFILL >= 85,"#FCCD50", "#5D5D67" )
 RETURN
-    Result
+IF(HASONEVALUE('malmash_bankait_converter'[zone_mlmsh]),
+"data:image/svg+xml;utf8," & 
+"<svg desc = '" & SORT & "' width='200' height='40' viewBox='0 0 105 40' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' display= 'block'  overflow='visible'>
+<rect id='track' x='-45' y='15' rx='0' ry='0' width='100' height='40' fill='#D0D0D0'  />
+<rect id='fill' x='-45' y='17' rx='0' ry='0' width="& "'"& PERCENTAGEFILL &"'"&" height='18' fill='"&BarColour&"'></rect>
+<text x='-40' y='32' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='15' fill='#ffffff' >"&FORMAT(PERCENTAGEFILL/100, "0%")&"</text>
+</svg>"
+, BLANK())
