@@ -1,101 +1,138 @@
-SCORE_Weighted_Area Sparkline =
-VAR ChartWidth = 150
-VAR ChartHeight = 50
+SCORE_Weighted_Sparkline_FAST =
 
+VAR ChartWidth = 120
+VAR ChartHeight = 40
+
+-- חודש אחרון
 VAR LastMonth =
     DATE(YEAR(TODAY()), MONTH(TODAY()), 1)
 
+-- תחילת 12 חודשים אחורה
 VAR FirstMonth =
     EDATE(LastMonth, -11)
 
-VAR Last12Months =
+-- תמיד 12 חודשים אחרונים, בלי קשר לסלייסר
+VAR Months12 =
     FILTER(
         ALL('Calendar'[MONTH_START2]),
-        'Calendar'[MONTH_START2] >= FirstMonth
-            && 'Calendar'[MONTH_START2] <= LastMonth
+        'Calendar'[MONTH_START2] >= FirstMonth &&
+        'Calendar'[MONTH_START2] <= LastMonth
     )
 
-VAR MonthTable =
+-- טבלת ערכים
+VAR DataTable =
     ADDCOLUMNS(
-        Last12Months,
+        Months12,
         "Val", CALCULATE([SCORE_Weighted])
     )
 
-VAR FilteredMonthTable =
-    FILTER(MonthTable, NOT ISBLANK([Val]))
+-- גבולות Y
+VAR YMin =
+    MINX(DataTable, [Val])
 
-VAR XMinDate = MINX(FilteredMonthTable, 'Calendar'[MONTH_START2])
-VAR XMaxDate = MAXX(FilteredMonthTable, 'Calendar'[MONTH_START2])
-VAR YMinValue = MINX(FilteredMonthTable, [Val])
-VAR YMaxValue = MAXX(FilteredMonthTable, [Val])
+VAR YMax =
+    MAXX(DataTable, [Val])
 
-VAR XRange = IF(XMaxDate = XMinDate, 1, XMaxDate - XMinDate)
-VAR YRange = IF(YMaxValue = YMinValue, 1, YMaxValue - YMinValue)
+VAR YRange =
+    IF(YMax = YMin, 1, YMax - YMin)
 
-VAR FirstValue =
-    MINX(
-        FILTER(FilteredMonthTable, 'Calendar'[MONTH_START2] = XMinDate),
-        [Val]
-    )
-
-VAR LastValue =
-    MAXX(
-        FILTER(FilteredMonthTable, 'Calendar'[MONTH_START2] = XMaxDate),
-        [Val]
-    )
-
-VAR LineColour =
-    IF(LastValue >= FirstValue, "%23118DFF", "%23FF0000")
-
-VAR PointColour = "white"
-
-VAR Defs =
-    "<defs>
-        <linearGradient id='grad' x1='0' y1='0' x2='0' y2='1'>
-            <stop stop-color='" & LineColour & "' offset='0' />
-            <stop stop-color='" & LineColour & "' offset='0.3' />
-            <stop stop-color='white' offset='1' />
-        </linearGradient>
-    </defs>"
-
-VAR SparklineTable =
+-- מיקום X לפי סדר חודשים (0-11)
+VAR SparkTable =
     ADDCOLUMNS(
-        FilteredMonthTable,
-        "X", INT(ChartWidth * DIVIDE('Calendar'[MONTH_START2] - XMinDate, XRange)),
-        "Y", INT(ChartHeight * DIVIDE([Val] - YMinValue, YRange))
+        DataTable,
+        "MonthRank",
+            RANKX(
+                DataTable,
+                'Calendar'[MONTH_START2],
+                ,
+                ASC
+            ),
+        "X",
+            INT(
+                ChartWidth *
+                DIVIDE(
+                    RANKX(DataTable,'Calendar'[MONTH_START2],,ASC)-1,
+                    11
+                )
+            ),
+        "Y",
+            INT(
+                ChartHeight *
+                DIVIDE([Val] - YMin, YRange)
+            )
     )
 
-VAR Lines =
+-- נקודות הקו
+VAR Points =
     CONCATENATEX(
-        SparklineTable,
+        SparkTable,
         [X] & "," & (ChartHeight - [Y]),
         " ",
         'Calendar'[MONTH_START2],
         ASC
     )
 
-VAR LastSparkXValue =
-    MAXX(FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [X])
+-- נקודה אחרונה
+VAR LastX =
+    MAXX(SparkTable, [X])
 
-VAR LastSparkYValue =
-    MAXX(FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [Y])
-
-VAR SVGImageURL =
-    IF(
-        HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
-        "data:image/svg+xml;utf8," &
-        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7 -7 164 64'>" &
-            Defs &
-            "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='none' points='0,50 " &
-                Lines &
-                " 150,50' />" &
-            "<polyline fill='none' stroke='" & LineColour & "' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' points='" &
-                Lines &
-                "' />" &
-            "<circle cx='" & LastSparkXValue & "' cy='" & (ChartHeight - LastSparkYValue) & "' r='4' stroke='" & LineColour & "' stroke-width='3' fill='" & PointColour & "' />" &
-        "</svg>",
-        BLANK()
+VAR LastY =
+    MAXX(
+        FILTER(
+            SparkTable,
+            'Calendar'[MONTH_START2] = LastMonth
+        ),
+        [Y]
     )
 
-RETURN
-    SVGImageURL
+-- צבע לפי מגמה
+VAR FirstVal =
+    MINX(
+        FILTER(
+            SparkTable,
+            'Calendar'[MONTH_START2] = FirstMonth
+        ),
+        [Val]
+    )
+
+VAR LastVal =
+    MAXX(
+        FILTER(
+            SparkTable,
+            'Calendar'[MONTH_START2] = LastMonth
+        ),
+        [Val]
+    )
+
+VAR LineColour =
+    IF(
+        LastVal >= FirstVal,
+        "%23118DFF",
+        "%23FF0000"
+    )
+
+VAR SVG =
+IF(
+HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
+
+"data:image/svg+xml;utf8," &
+"<svg xmlns='http://www.w3.org/2000/svg'
+viewBox='0 0 " & ChartWidth & " " & ChartHeight & "'>
+
+<polyline
+fill='none'
+stroke='" & LineColour & "'
+stroke-width='2'
+stroke-linecap='round'
+points='" & Points & "'/>
+
+<circle
+cx='" & LastX & "'
+cy='" & (ChartHeight - LastY) & "'
+r='3'
+fill='" & LineColour & "'/>
+
+</svg>"
+)
+
+RETURN SVG
