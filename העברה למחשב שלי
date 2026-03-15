@@ -3,10 +3,10 @@ VAR ChartWidth = 150
 VAR ChartHeight = 50
 
 VAR LastMonth =
-    EOMONTH(TODAY(), 0)
+    DATE(YEAR(TODAY()), MONTH(TODAY()), 1)
 
 VAR FirstMonth =
-    EOMONTH(LastMonth, -11)
+    EDATE(LastMonth, -11)
 
 VAR Last12Months =
     FILTER(
@@ -24,23 +24,13 @@ VAR MonthTable =
 VAR FilteredMonthTable =
     FILTER(MonthTable, NOT ISBLANK([Val]))
 
-VAR XMinDate =
-    MINX(FilteredMonthTable, 'Calendar'[MONTH_START2])
+VAR XMinDate = MINX(FilteredMonthTable, 'Calendar'[MONTH_START2])
+VAR XMaxDate = MAXX(FilteredMonthTable, 'Calendar'[MONTH_START2])
+VAR YMinValue = MINX(FilteredMonthTable, [Val])
+VAR YMaxValue = MAXX(FilteredMonthTable, [Val])
 
-VAR XMaxDate =
-    MAXX(FilteredMonthTable, 'Calendar'[MONTH_START2])
-
-VAR YMinValue =
-    MINX(FilteredMonthTable, [Val])
-
-VAR YMaxValue =
-    MAXX(FilteredMonthTable, [Val])
-
-VAR XRange =
-    IF(XMaxDate = XMinDate, 1, XMaxDate - XMinDate)
-
-VAR YRange =
-    IF(YMaxValue = YMinValue, 1, YMaxValue - YMinValue)
+VAR XRange = IF(XMaxDate = XMinDate, 1, XMaxDate - XMinDate)
+VAR YRange = IF(YMaxValue = YMinValue, 1, YMaxValue - YMinValue)
 
 VAR FirstValue =
     MINX(
@@ -85,16 +75,10 @@ VAR Lines =
     )
 
 VAR LastSparkXValue =
-    MAXX(
-        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
-        [X]
-    )
+    MAXX(FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [X])
 
 VAR LastSparkYValue =
-    MAXX(
-        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
-        [Y]
-    )
+    MAXX(FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [Y])
 
 VAR SVGImageURL =
     IF(
