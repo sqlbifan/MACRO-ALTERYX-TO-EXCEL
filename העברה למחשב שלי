@@ -1,17 +1,27 @@
-<defs>
-<linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'>
-<stop offset='0%' stop-color='"&BarColour&"'/>
-<stop offset='100%' stop-color='%23ffffff'/>
-</linearGradient>
-</defs>
+Dummbels = 
 
-fill='url(#barGrad)'
-
-<rect id='fill'
-x='-45'
-y='17'
-width='"& PERCENTAGEFILL &"'
-height='18'
-rx='6'
-ry='6'
-fill='url(#barGrad)'/>
+VAR Target = 100
+VAR Actual = [SCORE_Weighted]
+VAR AXISMAXRANGE = MAXX(ALLSELECTED('malmash_bankait_converter'[Zone_Desc_Update_FULL],'malmash_bankait_converter'[ESHKOL],'malmash_bankait_converter'[Branch_Name_Fixed]), [SCORE_Weighted])
+VAR AXISMINRANGE = MINX(ALLSELECTED('malmash_bankait_converter'[Zone_Desc_Update_FULL],'malmash_bankait_converter'[ESHKOL],'malmash_bankait_converter'[Branch_Name_Fixed]), [SCORE_Weighted])
+VAR AXISRANGE = AXISMAXRANGE-AXISMINRANGE
+VAR NODE_1 = Target/AXISMAXRANGE*100
+VAR NODE_2 = Actual/AXISMAXRANGE*100
+VAR MINNODE = MIN(NODE_1,NODE_2)
+VAR MAXNODE = MAX(NODE_1,NODE_2)
+VAR BarColour = SWITCH(TRUE(), Actual >= Target, "#15B29E",  "#ff7070" )
+VAR BarColourStop = SWITCH(TRUE(), Actual >= Target, "#178678", "#A10202" )
+VAR SORT = [SCORE_Weighted]
+VAR Result = IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
+"data:image/svg+xml;utf8," & "
+    <svg desc = '" & SORT & "' width='500' height='40' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='40 0 108 20' overflow='visible'>
+        <defs><linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"&BarColour&"'/><stop offset='100%' stop-color='"&BarColourStop&"'/></linearGradient></defs>
+        <rect id='track' x="&"'"&MINNODE&"'"&" y='9' width="&"'"&(MAXNODE-MINNODE)&"'"&" height='2' fill='#D0D0D0'/>
+        <circle id='cat_1' cx="&"'"&NODE_1&"'"&" cy='10' r='6' width='2' height='20' fill='#D0D0D0'></circle>
+        <circle id='cat_2' cx="&"'"&NODE_2&"'"&" cy='10' r='6' width='2' height='20' fill='url(#barGrad)' ></circle>
+        <text x='0' y='10' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='10' >"&FORMAT(Actual, "0.00")&"</text>
+        
+    </svg>
+", BLANK())
+RETURN
+Result
