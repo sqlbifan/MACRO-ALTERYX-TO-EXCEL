@@ -1,27 +1,57 @@
-Dummbels = 
-
-VAR Target = 100
-VAR Actual = [SCORE_Weighted]
-VAR AXISMAXRANGE = MAXX(ALLSELECTED('malmash_bankait_converter'[Zone_Desc_Update_FULL],'malmash_bankait_converter'[ESHKOL],'malmash_bankait_converter'[Branch_Name_Fixed]), [SCORE_Weighted])
-VAR AXISMINRANGE = MINX(ALLSELECTED('malmash_bankait_converter'[Zone_Desc_Update_FULL],'malmash_bankait_converter'[ESHKOL],'malmash_bankait_converter'[Branch_Name_Fixed]), [SCORE_Weighted])
-VAR AXISRANGE = AXISMAXRANGE-AXISMINRANGE
-VAR NODE_1 = Target/AXISMAXRANGE*100
-VAR NODE_2 = Actual/AXISMAXRANGE*100
-VAR MINNODE = MIN(NODE_1,NODE_2)
-VAR MAXNODE = MAX(NODE_1,NODE_2)
-VAR BarColour = SWITCH(TRUE(), Actual >= Target, "#15B29E",  "#ff7070" )
-VAR BarColourStop = SWITCH(TRUE(), Actual >= Target, "#178678", "#A10202" )
-VAR SORT = [SCORE_Weighted]
-VAR Result = IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
-"data:image/svg+xml;utf8," & "
-    <svg desc = '" & SORT & "' width='500' height='40' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='40 0 108 20' overflow='visible'>
-        <defs><linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"&BarColour&"'/><stop offset='100%' stop-color='"&BarColourStop&"'/></linearGradient></defs>
-        <rect id='track' x="&"'"&MINNODE&"'"&" y='9' width="&"'"&(MAXNODE-MINNODE)&"'"&" height='2' fill='#D0D0D0'/>
-        <circle id='cat_1' cx="&"'"&NODE_1&"'"&" cy='10' r='6' width='2' height='20' fill='#D0D0D0'></circle>
-        <circle id='cat_2' cx="&"'"&NODE_2&"'"&" cy='10' r='6' width='2' height='20' fill='url(#barGrad)' ></circle>
-        <text x='0' y='10' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='10' >"&FORMAT(Actual, "0.00")&"</text>
-        
-    </svg>
-", BLANK())
-RETURN
-Result
+SCORE_Weighted_Area Sparkline = 
+// Static line color - use %23 instead of # for Firefox compatibility (Measure Derived from Eldersveld Modified by Kolosko)
+VAR line =
+    LINESTX (
+        ALL ( 'Calendar'[MONTH_START2]),
+        [SCORE_Weighted],
+        'Calendar'[MONTH_START2]
+    )
+VAR slope = SELECTCOLUMNS ( line, [Slope1] )
+VAR intercept = SELECTCOLUMNS ( line, [Intercept] )
+VAR x = SELECTEDVALUE ( 'Calendar'[MONTH_START2] )
+VAR y = x * slope + intercept
+VAR LineColour = IF(Slope > 0, "%23118DFF", "#FF0000")
+VAR PointColour = "white"
+VAR Defs = "<defs>
+    <linearGradient id='grad' x1='0' y1='25' x2='0' y2='50' gradientUnits='userSpaceOnUse'>
+        <stop stop-color='" & LineColour & "'  offset='0' />
+        <stop stop-color='" & LineColour & "'  offset='0.3' />
+        <stop stop-color='white' offset='1' />
+    </linearGradient>
+</defs>"
+// "Date" field used in this example along the X axis
+VAR XMinDate = MIN('Calendar'[MONTH_START2])
+VAR XMaxDate = MAX('Calendar'[MONTH_START2])
+// Obtain overall min and overall max measure values when evaluated for each date
+VAR YMinValue = MINX(Values('Calendar'[MONTH_START2]),CALCULATE([SCORE_Weighted]))
+VAR YMaxValue = MAXX(Values('Calendar'[MONTH_START2]),CALCULATE([SCORE_Weighted]))
+// Build table of X & Y coordinates and fit to 50 x 150 viewbox
+VAR SparklineTable = ADDCOLUMNS(
+    SUMMARIZE('Calendar','Calendar'[MONTH_START2]),
+        "X",INT(150 * DIVIDE('Calendar'[MONTH_START2] - XMinDate, XMaxDate - XMinDate)),
+        "Y",INT(50 * DIVIDE([SCORE_Weighted] - YMinValue,YMaxValue - YMinValue)))
+// Concatenate X & Y coordinates to build the sparkline
+VAR Lines = CONCATENATEX(SparklineTable,[X] & "," & 50-[Y]," ", 'Calendar'[MONTH_START2])
+// Last data points on the line
+VAR LastSparkYValue = MAXX( FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [Y])
+VAR LastSparkXValue = MAXX( FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [X])
+// Add to SVG, and verify Data Category is set to Image URL for this measure
+VAR SVGImageURL = 
+    IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
+    "data:image/svg+xml;utf8," & 
+    --- gradient---
+    "<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='-7 -7 164 64'>" & Defs & 
+     "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='transparent' 
+      stroke-width='0' points=' 0 50 " & Lines & 
+      " 150 150 Z '/>" &
+    --- Lines---
+    "<polyline 
+        fill='transparent' stroke='" & LineColour & "' 
+        stroke-linecap='round' stroke-linejoin='round' 
+        stroke-width='3' points=' " & Lines & 
+      " '/>" &
+    --- Last Point---
+        "<circle cx='"& LastSparkXValue & "' cy='" & 50 - LastSparkYValue & "' r='4' stroke='" & LineColour & "' stroke-width='3' fill='" & PointColour & "' />" &
+        "</svg>",
+     BLANK())
+RETURN SVGImageURL
