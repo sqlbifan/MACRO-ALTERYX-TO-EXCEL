@@ -1,57 +1,117 @@
-SCORE_Weighted_Area Sparkline = 
-// Static line color - use %23 instead of # for Firefox compatibility (Measure Derived from Eldersveld Modified by Kolosko)
-VAR line =
-    LINESTX (
-        ALL ( 'Calendar'[MONTH_START2]),
-        [SCORE_Weighted],
-        'Calendar'[MONTH_START2]
+SCORE_Weighted_Area Sparkline =
+VAR ChartWidth = 150
+VAR ChartHeight = 50
+
+VAR LastMonth =
+    EOMONTH(TODAY(), 0)
+
+VAR FirstMonth =
+    EOMONTH(LastMonth, -11)
+
+VAR Last12Months =
+    FILTER(
+        ALL('Calendar'[MONTH_START2]),
+        'Calendar'[MONTH_START2] >= FirstMonth
+            && 'Calendar'[MONTH_START2] <= LastMonth
     )
-VAR slope = SELECTCOLUMNS ( line, [Slope1] )
-VAR intercept = SELECTCOLUMNS ( line, [Intercept] )
-VAR x = SELECTEDVALUE ( 'Calendar'[MONTH_START2] )
-VAR y = x * slope + intercept
-VAR LineColour = IF(Slope > 0, "%23118DFF", "#FF0000")
+
+VAR MonthTable =
+    ADDCOLUMNS(
+        Last12Months,
+        "Val", CALCULATE([SCORE_Weighted])
+    )
+
+VAR FilteredMonthTable =
+    FILTER(MonthTable, NOT ISBLANK([Val]))
+
+VAR XMinDate =
+    MINX(FilteredMonthTable, 'Calendar'[MONTH_START2])
+
+VAR XMaxDate =
+    MAXX(FilteredMonthTable, 'Calendar'[MONTH_START2])
+
+VAR YMinValue =
+    MINX(FilteredMonthTable, [Val])
+
+VAR YMaxValue =
+    MAXX(FilteredMonthTable, [Val])
+
+VAR XRange =
+    IF(XMaxDate = XMinDate, 1, XMaxDate - XMinDate)
+
+VAR YRange =
+    IF(YMaxValue = YMinValue, 1, YMaxValue - YMinValue)
+
+VAR FirstValue =
+    MINX(
+        FILTER(FilteredMonthTable, 'Calendar'[MONTH_START2] = XMinDate),
+        [Val]
+    )
+
+VAR LastValue =
+    MAXX(
+        FILTER(FilteredMonthTable, 'Calendar'[MONTH_START2] = XMaxDate),
+        [Val]
+    )
+
+VAR LineColour =
+    IF(LastValue >= FirstValue, "%23118DFF", "%23FF0000")
+
 VAR PointColour = "white"
-VAR Defs = "<defs>
-    <linearGradient id='grad' x1='0' y1='25' x2='0' y2='50' gradientUnits='userSpaceOnUse'>
-        <stop stop-color='" & LineColour & "'  offset='0' />
-        <stop stop-color='" & LineColour & "'  offset='0.3' />
-        <stop stop-color='white' offset='1' />
-    </linearGradient>
-</defs>"
-// "Date" field used in this example along the X axis
-VAR XMinDate = MIN('Calendar'[MONTH_START2])
-VAR XMaxDate = MAX('Calendar'[MONTH_START2])
-// Obtain overall min and overall max measure values when evaluated for each date
-VAR YMinValue = MINX(Values('Calendar'[MONTH_START2]),CALCULATE([SCORE_Weighted]))
-VAR YMaxValue = MAXX(Values('Calendar'[MONTH_START2]),CALCULATE([SCORE_Weighted]))
-// Build table of X & Y coordinates and fit to 50 x 150 viewbox
-VAR SparklineTable = ADDCOLUMNS(
-    SUMMARIZE('Calendar','Calendar'[MONTH_START2]),
-        "X",INT(150 * DIVIDE('Calendar'[MONTH_START2] - XMinDate, XMaxDate - XMinDate)),
-        "Y",INT(50 * DIVIDE([SCORE_Weighted] - YMinValue,YMaxValue - YMinValue)))
-// Concatenate X & Y coordinates to build the sparkline
-VAR Lines = CONCATENATEX(SparklineTable,[X] & "," & 50-[Y]," ", 'Calendar'[MONTH_START2])
-// Last data points on the line
-VAR LastSparkYValue = MAXX( FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [Y])
-VAR LastSparkXValue = MAXX( FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate), [X])
-// Add to SVG, and verify Data Category is set to Image URL for this measure
-VAR SVGImageURL = 
-    IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
-    "data:image/svg+xml;utf8," & 
-    --- gradient---
-    "<svg xmlns='http://www.w3.org/2000/svg' x='0px' y='0px' viewBox='-7 -7 164 64'>" & Defs & 
-     "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='transparent' 
-      stroke-width='0' points=' 0 50 " & Lines & 
-      " 150 150 Z '/>" &
-    --- Lines---
-    "<polyline 
-        fill='transparent' stroke='" & LineColour & "' 
-        stroke-linecap='round' stroke-linejoin='round' 
-        stroke-width='3' points=' " & Lines & 
-      " '/>" &
-    --- Last Point---
-        "<circle cx='"& LastSparkXValue & "' cy='" & 50 - LastSparkYValue & "' r='4' stroke='" & LineColour & "' stroke-width='3' fill='" & PointColour & "' />" &
+
+VAR Defs =
+    "<defs>
+        <linearGradient id='grad' x1='0' y1='0' x2='0' y2='1'>
+            <stop stop-color='" & LineColour & "' offset='0' />
+            <stop stop-color='" & LineColour & "' offset='0.3' />
+            <stop stop-color='white' offset='1' />
+        </linearGradient>
+    </defs>"
+
+VAR SparklineTable =
+    ADDCOLUMNS(
+        FilteredMonthTable,
+        "X", INT(ChartWidth * DIVIDE('Calendar'[MONTH_START2] - XMinDate, XRange)),
+        "Y", INT(ChartHeight * DIVIDE([Val] - YMinValue, YRange))
+    )
+
+VAR Lines =
+    CONCATENATEX(
+        SparklineTable,
+        [X] & "," & (ChartHeight - [Y]),
+        " ",
+        'Calendar'[MONTH_START2],
+        ASC
+    )
+
+VAR LastSparkXValue =
+    MAXX(
+        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
+        [X]
+    )
+
+VAR LastSparkYValue =
+    MAXX(
+        FILTER(SparklineTable, 'Calendar'[MONTH_START2] = XMaxDate),
+        [Y]
+    )
+
+VAR SVGImageURL =
+    IF(
+        HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]),
+        "data:image/svg+xml;utf8," &
+        "<svg xmlns='http://www.w3.org/2000/svg' viewBox='-7 -7 164 64'>" &
+            Defs &
+            "<polyline fill='url(#grad)' fill-opacity='0.3' stroke='none' points='0,50 " &
+                Lines &
+                " 150,50' />" &
+            "<polyline fill='none' stroke='" & LineColour & "' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' points='" &
+                Lines &
+                "' />" &
+            "<circle cx='" & LastSparkXValue & "' cy='" & (ChartHeight - LastSparkYValue) & "' r='4' stroke='" & LineColour & "' stroke-width='3' fill='" & PointColour & "' />" &
         "</svg>",
-     BLANK())
-RETURN SVGImageURL
+        BLANK()
+    )
+
+RETURN
+    SVGImageURL
