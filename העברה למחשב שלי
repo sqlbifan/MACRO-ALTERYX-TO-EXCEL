@@ -29,3 +29,24 @@ VAR _Arrow =
     )
 RETURN
     _Arrow
+
+Sum (Latest Data Point) = 
+--Disclaimer: DAX in these templates doesn't follow best practices
+--            Don't use this DAX as-is; the templates are intended to be illustrative.
+
+
+VAR _LatestDate =
+    CALCULATE(
+        MAX( 'Table'[Month] ),
+        REMOVEFILTERS( )
+    )
+VAR _LatestMonth = MONTH( _LatestDate )
+VAR _LatestYear = YEAR( _LatestDate )
+RETURN
+    CALCULATE(
+        [Sum],
+        'Date'[Month (MM)] = _LatestMonth,
+        'Date'[Year (YYYY)] = _LatestYear
+    )
+
+
