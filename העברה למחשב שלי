@@ -1,1 +1,31 @@
-https://github.com/data-goblin/powerbi-macguyver-toolbox
+KPI Trend Line Subtitle = 
+--Disclaimer: DAX in these templates doesn't follow best practices
+--            Don't use this DAX as-is; the templates are intended to be illustrative.
+
+
+VAR _LatestDate =
+    CALCULATE(
+        MIN( 'Table'[Month] ),
+        VALUES( 'Date'[Year (YYYY)] ),
+        REMOVEFILTERS( )
+    )
+VAR _LatestMonth = MONTH( _LatestDate )
+VAR _LatestYear = YEAR( _LatestDate )
+VAR _Start =
+    CALCULATE(
+        [Sum],
+        'Date'[Month (MM)] = _LatestMonth,
+        'Date'[Year (YYYY)] = _LatestYear
+    )
+VAR _Finish = [Sum (Latest Data Point)]
+VAR _Increase = UNICHAR( 8599 )
+VAR _Decrease = UNICHAR( 8600 )
+VAR _Delta = _Finish - _Start
+VAR _Arrow =
+    IF(
+        _Delta > 0,
+        _Increase & " Trending up",
+        _Decrease & " Trending down"
+    )
+RETURN
+    _Arrow
