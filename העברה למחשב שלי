@@ -10,7 +10,7 @@ IF(
     "#FF7F7F", // Red for low
     "#7FFF7F"  // Green for high
 )
-
+-------------===========================
 Color Measure = 
 VAR _value = [Your Measure]
 VAR _min = MINX(ALLSELECTED('Your Table'), [Your Measure])
@@ -24,3 +24,70 @@ RETURN
         _value < _mid * 1.5, "#FFFF00", // Yellow (middle values)
         "#00FF00" // Green (highest values)
     )
+----------------=============================
+Gradient Color Dynamic =
+VAR CurrentValue = [Your Measure]
+
+VAR MinVal =
+    MINX(
+        ALLSELECTED('YourTable'[YourCategory]),
+        CALCULATE([Your Measure])
+    )
+
+VAR MaxVal =
+    MAXX(
+        ALLSELECTED('YourTable'[YourCategory]),
+        CALCULATE([Your Measure])
+    )
+
+VAR MidVal =
+    DIVIDE(MinVal + MaxVal, 2)
+
+VAR ClampedValue =
+    MIN(MaxVal, MAX(MinVal, CurrentValue))
+
+VAR RatioLowToMid =
+    DIVIDE(ClampedValue - MinVal, MidVal - MinVal, 0)
+
+VAR RatioMidToHigh =
+    DIVIDE(ClampedValue - MidVal, MaxVal - MidVal, 0)
+
+-- צבעים
+VAR LowR = 215
+VAR LowG = 48
+VAR LowB = 39
+
+VAR MidR = 255
+VAR MidG = 242
+VAR MidB = 204
+
+VAR HighR = 26
+VAR HighG = 152
+VAR HighB = 80
+
+VAR R =
+    IF(
+        ClampedValue <= MidVal,
+        ROUND(LowR + (MidR - LowR) * RatioLowToMid, 0),
+        ROUND(MidR + (HighR - MidR) * RatioMidToHigh, 0)
+    )
+
+VAR G =
+    IF(
+        ClampedValue <= MidVal,
+        ROUND(LowG + (MidG - LowG) * RatioLowToMid, 0),
+        ROUND(MidG + (HighG - MidG) * RatioMidToHigh, 0)
+    )
+
+VAR B =
+    IF(
+        ClampedValue <= MidVal,
+        ROUND(LowB + (MidB - LowB) * RatioLowToMid, 0),
+        ROUND(MidB + (HighB - MidB) * RatioMidToHigh, 0)
+    )
+
+RETURN
+    "#" &
+    RIGHT("0" & DEC2HEX(R, 2), 2) &
+    RIGHT("0" & DEC2HEX(G, 2), 2) &
+    RIGHT("0" & DEC2HEX(B, 2), 2)
