@@ -10,3 +10,17 @@ IF(
     "#FF7F7F", // Red for low
     "#7FFF7F"  // Green for high
 )
+
+Color Measure = 
+VAR _value = [Your Measure]
+VAR _min = MINX(ALLSELECTED('Your Table'), [Your Measure])
+VAR _max = MAXX(ALLSELECTED('Your Table'), [Your Measure])
+VAR _mid = (_min + _max) / 2 // Or a custom center value
+
+RETURN
+    SWITCH(
+        TRUE(),
+        _value < _mid * 0.5, "#FF0000", // Red (lowest values)
+        _value < _mid * 1.5, "#FFFF00", // Yellow (middle values)
+        "#00FF00" // Green (highest values)
+    )
