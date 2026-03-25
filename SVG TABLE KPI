@@ -1,0 +1,27 @@
+Callout_Progress_SPREAD_PURPOSE_KPI = 
+VAR width= 100
+VAR height= 40
+VAR Actual = [SPREAD__ACTUAL_SWITCH_YTD]
+VAR Target = [SPREAD_PLAN_SWITCH]
+--- Field to sort the measures by in a table ---
+VAR SORT = [SCORE_Weighted]
+--- Progress Bar Info ---
+VAR PERCENTAGEFILL = MAXX(VALUES('SALES_CATEGORY_SELECT'[SALES_CATEGORY]),Actual/Target)*100
+VAR MAX_range = MAX((PERCENTAGEFILL/100)+10,110)
+--VAR BarColour = "Navy"
+VAR BarColour = SWITCH(TRUE(),[DAYS_CNT_ON_SLICER]<= 15,"#4D8FF7", PERCENTAGEFILL >= 100, "#15B29E", PERCENTAGEFILL >= 50,"#4D8FF7", "#ff7070" )
+VAR BarColourStop = SWITCH(TRUE(),[DAYS_CNT_ON_SLICER]<= 15,"#4D8FF7", PERCENTAGEFILL >= 100, "#178678", PERCENTAGEFILL >= 50,"#4275C6", "#A10202" )
+VAR TextColour = SWITCH(TRUE(),[DAYS_CNT_ON_SLICER]<= 15,"#FFFFFF", PERCENTAGEFILL >= 0, "#FFFFFF",  "#ff7070" )
+RETURN
+IF(HASONEVALUE('SALES_CATEGORY_SELECT'[SALES_CATEGORY]),
+"data:image/svg+xml;utf8," & 
+"<svg desc = 'KFIR' width='200' height='100' viewBox='0 0 200 100' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' display= 'block'  overflow='visible'>
+<g transform='translate(200,0) scale(-1,1)'>
+<defs><linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"&BarColour&"'/><stop offset='100%' stop-color='"&BarColourStop&"'/></linearGradient></defs>
+<rect id='track' x='0' y='90' rx='0' ry='0' width='100' height='6' fill='#D0D0D0' stroke='#D0D0D0' stroke-width= '0'  />
+<rect id='fill' x='0' y='90' rx='0' ry='0' width="& "'"& PERCENTAGEFILL &"'"&" height='4' fill='url(#barGrad)'></rect>
+<text x='0' y='13' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='13' fill='"&BarColourStop&"' >"&FORMAT(Actual, "0.0")&"</text>
+<text x='68' y='13' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='13' fill='#808080' >"&FORMAT(Target, "0.0")&"</text>
+<text x="& "'"& MAX_range &"'"&" y='16' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='18' fill='"&BarColourStop&"' >"&FORMAT(PERCENTAGEFILL/100, "0.0%")&"</text>
+</svg>"
+, BLANK())
