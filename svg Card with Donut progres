@@ -1,24 +1,20 @@
 Card with Donut progress = 
 -- For illustrative and educational purposes.
 -- You'll need to adjust these SVG measures for use in your own solutions.
-
 -- When using SVG measures, be aware that they're custom 'microvisuals'.
 -- They require more time and effort to build, test, and maintain.
 
-
 /* SETUP */
-VAR _total = [Sum (PY YTD)]  // Will be used as a target
-VAR _value = [Sum (CY YTD)] // Will be used as a current value
-VAR _width = 365 // Width size of the SVG
-VAR _height = 220 // Height size of the SVG
+VAR _total = 100 // Will be used as a target
+VAR _value = [SCORE_Weighted] // Will be used as a current value
+VAR _width = 241 // Width size of the SVG
+VAR _height = 145 // Height size of the SVG
 VAR _CanvasSize = MIN( _height, _width ) // Canvas size
-VAR _paddning = 15 // Padding between the circle and the canvas
-
+VAR _paddning = 10 // Padding between the circle and the canvas
 /* COLOR DEFINITION */
 VAR _positive = "#658E95" // Positive Color
 VAR _neutral = "#E7E74E" // Neutral Color
 VAR _negative = "#7D1D3A" // Negative Color
-
 /* PRE CALCULATION */
 VAR _halfSize = _CanvasSize / 2 // Half of the canvas size
 VAR _r = _halfSize - _paddning * 1.5 // Radius of the circle
@@ -32,13 +28,12 @@ SWITCH(
         _perc >= 0.5, _neutral, // Neutral Color
         _negative // Negative Color
     )
-
 /* STYLE DECLARTIONS */
 VAR _styles =
     "
   <style>
     text{
-        font-family: Segoe UI;
+    //font-family: Segoe UI;    
     }
     .backgroundCircle{
       transform:rotate(-90deg) translate(-"
@@ -72,7 +67,8 @@ VAR _styles =
       fill: "
         & _clr
         & ";
-      font-size: 225%;
+      font-size: 160%;
+      font-family: Century Gothic;
       text-anchor: middle;
       dominant-baseline: middle;
       font-weight: bold;
@@ -93,12 +89,10 @@ VAR _styles =
     }
   </style>
 "
-
 /* SVG DECLARTIONS */
 VAR _svgDeclaration = "data:image/svg+xml;utf8,"
 VAR _svgHeader = "<svg xmlns='http://www.w3.org/2000/svg' height='" & _height & "' width='" & _width & "'>"
 VAR _svgEnd = "</svg>"
-
 /* CALCULATION */
 VAR _sv =
     "
@@ -140,3 +134,4 @@ VAR _sv =
 VAR _result = _svgDeclaration & _svgHeader & _styles & _sv & _svgEnd
 RETURN
     _result
+
