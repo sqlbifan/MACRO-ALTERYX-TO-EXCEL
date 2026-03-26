@@ -1,0 +1,142 @@
+Card with Donut progress = 
+-- For illustrative and educational purposes.
+-- You'll need to adjust these SVG measures for use in your own solutions.
+
+-- When using SVG measures, be aware that they're custom 'microvisuals'.
+-- They require more time and effort to build, test, and maintain.
+
+
+/* SETUP */
+VAR _total = [Sum (PY YTD)]  // Will be used as a target
+VAR _value = [Sum (CY YTD)] // Will be used as a current value
+VAR _width = 365 // Width size of the SVG
+VAR _height = 220 // Height size of the SVG
+VAR _CanvasSize = MIN( _height, _width ) // Canvas size
+VAR _paddning = 15 // Padding between the circle and the canvas
+
+/* COLOR DEFINITION */
+VAR _positive = "#658E95" // Positive Color
+VAR _neutral = "#E7E74E" // Neutral Color
+VAR _negative = "#7D1D3A" // Negative Color
+
+/* PRE CALCULATION */
+VAR _halfSize = _CanvasSize / 2 // Half of the canvas size
+VAR _r = _halfSize - _paddning * 1.5 // Radius of the circle
+VAR _round = 2 * PI( ) * _r // Circumference of the circle
+VAR _perc = _value / _total // Percentage of the current value
+VAR _ratio = _round - _round * _perc // Ratio of the current value
+VAR _clr =  // Determine the color of the circle based on the percentage
+SWITCH(
+        TRUE( ),
+        _perc >= 0.75, _positive, // Positive Color
+        _perc >= 0.5, _neutral, // Neutral Color
+        _negative // Negative Color
+    )
+
+/* STYLE DECLARTIONS */
+VAR _styles =
+    "
+  <style>
+    text{
+        font-family: Segoe UI;
+    }
+    .backgroundCircle{
+      transform:rotate(-90deg) translate(-"
+        & ( _height + _width ) / 2
+        & "px, "
+        & ( _width - _height ) / 2
+        & "px);
+    }
+    .backgroundCircle{
+      fill: transparent;
+      stroke-width: "
+        & _paddning
+        & ";
+    }
+    .background{
+      stroke: #e0e0e0;
+    }
+    .filling{
+      stroke: "
+        & _clr
+        & ";
+      stroke-linecap: round;
+      stroke-dasharray: "
+        & _round
+        & ";
+      stroke-dashoffset: "
+        & _ratio
+        & ";
+    }
+    .mainText{
+      fill: "
+        & _clr
+        & ";
+      font-size: 225%;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      font-weight: bold;
+    }
+    .subTexts{
+      fill: #CCCCCC;
+      font-size: 95%;
+      dominant-baseline: middle;
+    }
+    .leftPositioned{
+        text-anchor: end;
+    }
+    .rightPositioned{
+        text-anchor: start;
+    }
+    .bolden{
+        font-weight: bold;
+    }
+  </style>
+"
+
+/* SVG DECLARTIONS */
+VAR _svgDeclaration = "data:image/svg+xml;utf8,"
+VAR _svgHeader = "<svg xmlns='http://www.w3.org/2000/svg' height='" & _height & "' width='" & _width & "'>"
+VAR _svgEnd = "</svg>"
+
+/* CALCULATION */
+VAR _sv =
+    "
+  <g class='backgroundCircle'>
+  <circle r='" & _r & "' cx='50%' cy='50%' class='background' />
+  <circle r='" & _r
+        & "' cx='50%' cy='50%' class='filling'/>
+  </g>
+  <g class='mainText'>
+  <text x='50%' y='37.5%' >"
+        & FORMAT( _perc, "0.0%" )
+        & "</text>
+  </g>
+  <g class='subTexts'>
+  <g class='leftPositioned'>
+  <text x='51%' y='50.5%' >"
+        & "Target:"
+        & "</text>
+  <text x='51%' y='60%' >"
+        & "Current:"
+        & "</text>
+  <text x='51%' y='69.5%' class='bolden'>"
+        & "Missing:"
+        & "</text>
+  </g>
+  <g class='rightPositioned'>
+  <text x='53%' y='50.5%' >"
+        & _total
+        & "</text>
+  <text x='53%' y='60%' >"
+        & ROUND( _value, 1 )
+        & "</text>
+  <text x='53%' y='69.5%' class='bolden'>"
+        & ROUND( _total - _value, 1 )
+        & "</text>
+  </g>
+  </g>
+"
+VAR _result = _svgDeclaration & _svgHeader & _styles & _sv & _svgEnd
+RETURN
+    _result
