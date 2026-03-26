@@ -10,16 +10,9 @@ VAR _r = 55
 VAR _round = 2 * PI() * _r
 VAR _perc = DIVIDE(_value, _total, 0)
 VAR _ratio = _round - (_round * _perc)
-VAR _positive = "#658E95"
-VAR _neutral = "#E7E74E"
-VAR _negative = "#7D1D3A"
-VAR _clr =
-    SWITCH(
-        TRUE(),
-        _perc >= 0.75, _positive,
-        _perc >= 0.5, _neutral,
-        _negative
-    )
+VAR _clr = [COLOR_CODE]
+VAR _clr_stop100 = [COLOR_CODE_STOPE]
+
 VAR _svg =
 "data:image/svg+xml;utf8," &
 "<svg xmlns='http://www.w3.org/2000/svg' width='" & _width & "' height='" & _height & "' viewBox='0 0 " & _width & " " & _height & "'>
