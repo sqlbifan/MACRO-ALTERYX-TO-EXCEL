@@ -1,137 +1,109 @@
 Card with Donut progress = 
--- For illustrative and educational purposes.
--- You'll need to adjust these SVG measures for use in your own solutions.
--- When using SVG measures, be aware that they're custom 'microvisuals'.
--- They require more time and effort to build, test, and maintain.
+VAR _total = 100
+VAR _value = [SCORE_Weighted]
 
-/* SETUP */
-VAR _total = 100 // Will be used as a target
-VAR _value = [SCORE_Weighted] // Will be used as a current value
-VAR _width = 241 // Width size of the SVG
-VAR _height = 145 // Height size of the SVG
-VAR _CanvasSize = MIN( _height, _width ) // Canvas size
-VAR _paddning = 10 // Padding between the circle and the canvas
-/* COLOR DEFINITION */
-VAR _positive = "#658E95" // Positive Color
-VAR _neutral = "#E7E74E" // Neutral Color
-VAR _negative = "#7D1D3A" // Negative Color
-/* PRE CALCULATION */
-VAR _halfSize = _CanvasSize / 2 // Half of the canvas size
-VAR _r = _halfSize - _paddning * 1.5 // Radius of the circle
-VAR _round = 2 * PI( ) * _r // Circumference of the circle
-VAR _perc = _value / _total // Percentage of the current value
-VAR _ratio = _round - _round * _perc // Ratio of the current value
-VAR _clr =  // Determine the color of the circle based on the percentage
-SWITCH(
-        TRUE( ),
-        _perc >= 0.75, _positive, // Positive Color
-        _perc >= 0.5, _neutral, // Neutral Color
-        _negative // Negative Color
+VAR _width = 150
+VAR _height = 145
+VAR _padding = 10
+
+VAR _cx = 52
+VAR _cy = 42
+
+VAR _r = 26
+VAR _round = 2 * PI() * _r
+VAR _perc = DIVIDE(_value, _total, 0)
+VAR _ratio = _round - (_round * _perc)
+
+VAR _positive = "#658E95"
+VAR _neutral = "#E7E74E"
+VAR _negative = "#7D1D3A"
+
+VAR _clr =
+    SWITCH(
+        TRUE(),
+        _perc >= 0.75, _positive,
+        _perc >= 0.5, _neutral,
+        _negative
     )
-/* STYLE DECLARTIONS */
-VAR _styles =
-    "
-  <style>
-    text{
-    //font-family: Segoe UI;    
-    }
-    .backgroundCircle{
-      transform:rotate(-90deg) translate(-"
-        & ( _height + _width ) / 2
-        & "px, "
-        & ( _width - _height ) / 2
-        & "px);
-    }
-    .backgroundCircle{
-      fill: transparent;
-      stroke-width: "
-        & _paddning
-        & ";
-    }
-    .background{
-      stroke: #e0e0e0;
-    }
-    .filling{
-      stroke: "
-        & _clr
-        & ";
-      stroke-linecap: round;
-      stroke-dasharray: "
-        & _round
-        & ";
-      stroke-dashoffset: "
-        & _ratio
-        & ";
-    }
-    .mainText{
-      fill: "
-        & _clr
-        & ";
-      font-size: 160%;
-      font-family: Century Gothic;
-      text-anchor: middle;
-      dominant-baseline: middle;
-      font-weight: bold;
-    }
-    .subTexts{
-      fill: #CCCCCC;
-      font-size: 95%;
-      dominant-baseline: middle;
-    }
-    .leftPositioned{
-        text-anchor: end;
-    }
-    .rightPositioned{
-        text-anchor: start;
-    }
-    .bolden{
-        font-weight: bold;
-    }
-  </style>
-"
-/* SVG DECLARTIONS */
-VAR _svgDeclaration = "data:image/svg+xml;utf8,"
-VAR _svgHeader = "<svg xmlns='http://www.w3.org/2000/svg' height='" & _height & "' width='" & _width & "'>"
-VAR _svgEnd = "</svg>"
-/* CALCULATION */
-VAR _sv =
-    "
-  <g class='backgroundCircle'>
-  <circle r='" & _r & "' cx='50%' cy='50%' class='background' />
-  <circle r='" & _r
-        & "' cx='50%' cy='50%' class='filling'/>
-  </g>
-  <g class='mainText'>
-  <text x='50%' y='37.5%' >"
-        & FORMAT( _perc, "0.0%" )
-        & "</text>
-  </g>
-  <g class='subTexts'>
-  <g class='leftPositioned'>
-  <text x='51%' y='50.5%' >"
-        & "Target:"
-        & "</text>
-  <text x='51%' y='60%' >"
-        & "Current:"
-        & "</text>
-  <text x='51%' y='69.5%' class='bolden'>"
-        & "Missing:"
-        & "</text>
-  </g>
-  <g class='rightPositioned'>
-  <text x='53%' y='50.5%' >"
-        & _total
-        & "</text>
-  <text x='53%' y='60%' >"
-        & ROUND( _value, 1 )
-        & "</text>
-  <text x='53%' y='69.5%' class='bolden'>"
-        & ROUND( _total - _value, 1 )
-        & "</text>
-  </g>
-  </g>
-"
-VAR _result = _svgDeclaration & _svgHeader & _styles & _sv & _svgEnd
-RETURN
-    _result
 
+VAR _svg =
+"data:image/svg+xml;utf8," &
+"<svg xmlns='http://www.w3.org/2000/svg' width='" & _width & "' height='" & _height & "' viewBox='0 0 " & _width & " " & _height & "'>
+
+    <circle
+        r='" & _r & "'
+        cx='" & _cx & "'
+        cy='" & _cy & "'
+        fill='none'
+        stroke='#e0e0e0'
+        stroke-width='" & _padding & "'
+        transform='rotate(-90 " & _cx & " " & _cy & ")'
+    />
+
+    <circle
+        r='" & _r & "'
+        cx='" & _cx & "'
+        cy='" & _cy & "'
+        fill='none'
+        stroke='" & _clr & "'
+        stroke-width='" & _padding & "'
+        stroke-linecap='round'
+        stroke-dasharray='" & _round & "'
+        stroke-dashoffset='" & _ratio & "'
+        transform='rotate(-90 " & _cx & " " & _cy & ")'
+    />
+
+    <text
+        x='" & _cx & "'
+        y='" & (_cy + 1) & "'
+        fill='" & _clr & "'
+        font-size='18'
+        font-family='Century Gothic, Segoe UI, Arial'
+        text-anchor='middle'
+        dominant-baseline='middle'
+        font-weight='bold'>"
+        & FORMAT(_perc, "0.0%") &
+    "</text>
+
+    <text x='18' y='88'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        text-anchor='start'>Target:</text>
+
+    <text x='78' y='88'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        text-anchor='start'>" & _total & "</text>
+
+    <text x='18' y='106'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        text-anchor='start'>Current:</text>
+
+    <text x='78' y='106'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        text-anchor='start'>" & ROUND(_value, 1) & "</text>
+
+    <text x='18' y='124'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        font-weight='bold'
+        text-anchor='start'>Missing:</text>
+
+    <text x='78' y='124'
+        fill='#999999'
+        font-size='12'
+        font-family='Segoe UI, Arial'
+        font-weight='bold'
+        text-anchor='start'>" & ROUND(_total - _value, 1) & "</text>
+
+</svg>"
+
+RETURN
+_svg
