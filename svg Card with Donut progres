@@ -1,23 +1,18 @@
 Card with Donut progress = 
 VAR _total = 100
 VAR _value = [SCORE_Weighted]
-
 VAR _width = 150
 VAR _height = 145
 VAR _padding = 10
-
-VAR _cx = 52
-VAR _cy = 42
-
-VAR _r = 26
+VAR _cx = 62
+VAR _cy = 62
+VAR _r = 55
 VAR _round = 2 * PI() * _r
 VAR _perc = DIVIDE(_value, _total, 0)
 VAR _ratio = _round - (_round * _perc)
-
 VAR _positive = "#658E95"
 VAR _neutral = "#E7E74E"
 VAR _negative = "#7D1D3A"
-
 VAR _clr =
     SWITCH(
         TRUE(),
@@ -25,21 +20,18 @@ VAR _clr =
         _perc >= 0.5, _neutral,
         _negative
     )
-
 VAR _svg =
 "data:image/svg+xml;utf8," &
 "<svg xmlns='http://www.w3.org/2000/svg' width='" & _width & "' height='" & _height & "' viewBox='0 0 " & _width & " " & _height & "'>
-
     <circle
         r='" & _r & "'
         cx='" & _cx & "'
         cy='" & _cy & "'
         fill='none'
         stroke='#e0e0e0'
-        stroke-width='" & _padding & "'
+        stroke-width='" & _padding-4 & "'
         transform='rotate(-90 " & _cx & " " & _cy & ")'
     />
-
     <circle
         r='" & _r & "'
         cx='" & _cx & "'
@@ -52,58 +44,49 @@ VAR _svg =
         stroke-dashoffset='" & _ratio & "'
         transform='rotate(-90 " & _cx & " " & _cy & ")'
     />
-
     <text
         x='" & _cx & "'
-        y='" & (_cy + 1) & "'
+        y='" & (_cy -10) & "'
         fill='" & _clr & "'
-        font-size='18'
+        font-size='30'
         font-family='Century Gothic, Segoe UI, Arial'
         text-anchor='middle'
         dominant-baseline='middle'
         font-weight='bold'>"
-        & FORMAT(_perc, "0.0%") &
+        & FORMAT(_perc *100, "0.0") &
     "</text>
-
     <text x='18' y='88'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>Target:</text>
-
     <text x='78' y='88'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>" & _total & "</text>
-
     <text x='18' y='106'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>Current:</text>
-
     <text x='78' y='106'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>" & ROUND(_value, 1) & "</text>
-
     <text x='18' y='124'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         font-weight='bold'
         text-anchor='start'>Missing:</text>
-
     <text x='78' y='124'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         font-weight='bold'
         text-anchor='start'>" & ROUND(_total - _value, 1) & "</text>
-
 </svg>"
-
 RETURN
 _svg
