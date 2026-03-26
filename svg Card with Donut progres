@@ -16,70 +16,88 @@ VAR _clr_stop100 = [COLOR_CODE_STOPE]
 VAR _svg =
 "data:image/svg+xml;utf8," &
 "<svg xmlns='http://www.w3.org/2000/svg' width='" & _width & "' height='" & _height & "' viewBox='0 0 " & _width & " " & _height & "'>
+
+    <defs>
+        <linearGradient id='donutGrad' x1='0%' y1='0%' x2='100%' y2='0%'>
+            <stop offset='0%' stop-color='" & _clr & "'/>
+            <stop offset='100%' stop-color='" & _clr_stop100 & "'/>
+        </linearGradient>
+    </defs>
+
     <circle
         r='" & _r & "'
         cx='" & _cx & "'
         cy='" & _cy & "'
         fill='none'
         stroke='#e0e0e0'
-        stroke-width='" & _padding-4 & "'
+        stroke-width='" & _padding - 4 & "'
         transform='rotate(-90 " & _cx & " " & _cy & ")'
     />
+
     <circle
         r='" & _r & "'
         cx='" & _cx & "'
         cy='" & _cy & "'
         fill='none'
-        stroke='" & _clr & "'
+        stroke='url(#donutGrad)'
         stroke-width='" & _padding & "'
         stroke-linecap='round'
         stroke-dasharray='" & _round & "'
         stroke-dashoffset='" & _ratio & "'
         transform='rotate(-90 " & _cx & " " & _cy & ")'
     />
+
     <text
         x='" & _cx & "'
-        y='" & (_cy -10) & "'
+        y='" & (_cy - 10) & "'
         fill='" & _clr & "'
         font-size='30'
         font-family='Century Gothic, Segoe UI, Arial'
         text-anchor='middle'
         dominant-baseline='middle'
         font-weight='bold'>"
-        & FORMAT(_perc *100, "0.0") &
+        & FORMAT(_perc * 100, "0.0") &
     "</text>
+
     <text x='18' y='88'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>Target:</text>
+
     <text x='78' y='88'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>" & _total & "</text>
+
     <text x='18' y='106'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>Current:</text>
+
     <text x='78' y='106'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         text-anchor='start'>" & ROUND(_value, 1) & "</text>
+
     <text x='18' y='124'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         font-weight='bold'
         text-anchor='start'>Missing:</text>
+
     <text x='78' y='124'
         fill='#999999'
         font-size='12'
         font-family='Segoe UI, Arial'
         font-weight='bold'
         text-anchor='start'>" & ROUND(_total - _value, 1) & "</text>
+
 </svg>"
+
 RETURN
 _svg
