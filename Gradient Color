@@ -1,0 +1,36 @@
+Gradient Color = 
+VAR __colorTable = 'Color Table'
+VAR _MAX = MAXX(ALLSELECTED('malmash_bankait_converter'[ESHKOL]), [SPREAD_2_ACTUAL_MULTIPL])
+VAR _MIN = MINX(ALLSELECTED('malmash_bankait_converter'[ESHKOL]), [SPREAD_2_ACTUAL_MULTIPL])
+VAR _Min_Max_Diff = _MAX - _MIN
+VAR __val = ( [SPREAD_2_ACTUAL_MULTIPL] - _MIN ) / _Min_Max_Diff
+VAR __decTable = 
+ADDCOLUMNS (
+    __colorTable,
+    "@dec",
+    INT (
+    __val *  [Max Color Dec] 
+        + ( 1 - __val )
+            * [Min Color Dec] 
+    )
+)
+	VAR Base = 16
+	VAR BitTable =
+	    GENERATESERIES ( 1, 2 )
+VAR __hexTable = 
+	    ADDCOLUMNS( 
+	    	__decTable,
+	    	"@Hex",
+	    	VAR __color = [@dec]
+	    	RETURN
+	    	CONCATENATEX(
+		        BitTable,
+		        VAR c = MOD ( TRUNC ( __color / POWER ( base, [value] - 1 ) ),base )
+		        RETURN SWITCH(c,10,"A",11,"B",12,"C",13,"D",14,"E",15,"F",c),
+		        ,
+		        [Value],Desc)
+	        )
+	                 
+RETURN 
+
+"#" & CONCATENATEX ( __hexTable, [@Hex] )
