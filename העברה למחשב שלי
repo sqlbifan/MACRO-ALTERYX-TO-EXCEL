@@ -1,171 +1,25 @@
-Color Table 3 =
-VAR __maxValueColor = "3A6BB9"   -- כחול
-VAR __midValueColor = "808080"   -- אפור
-VAR __minValueColor = "A1343C"   -- אדום
-
-VAR __colorLength = LEN(__maxValueColor) / 2
-
-VAR __maxColors =
-    ADDCOLUMNS(
-        GENERATESERIES(1, __colorLength),
-        "Max Color Hex", MID(__maxValueColor, ([Value] * 2) - 1, 2)
-    )
-
-VAR __maxColorsToDec =
-    ADDCOLUMNS(
-        __maxColors,
-        "Max Color Dec",
-        VAR __color = [Max Color Hex]
-        RETURN
-            SUMX(
-                GENERATESERIES(0, LEN(__color) - 1),
-                VAR c = MID(__color, LEN(__color) - [Value], 1)
-                VAR d =
-                    SWITCH(
-                        c,
-                        "A", 10, "B", 11, "C", 12,
-                        "D", 13, "E", 14, "F", 15,
-                        INT(c)
-                    )
-                RETURN d * POWER(16, [Value])
-            )
-    )
-
-VAR __midColors =
-    ADDCOLUMNS(
-        GENERATESERIES(1, __colorLength),
-        "Mid Color Hex", MID(__midValueColor, ([Value] * 2) - 1, 2)
-    )
-
-VAR __midColorsToDec =
-    ADDCOLUMNS(
-        __midColors,
-        "Mid Color Dec",
-        VAR __color = [Mid Color Hex]
-        RETURN
-            SUMX(
-                GENERATESERIES(0, LEN(__color) - 1),
-                VAR c = MID(__color, LEN(__color) - [Value], 1)
-                VAR d =
-                    SWITCH(
-                        c,
-                        "A", 10, "B", 11, "C", 12,
-                        "D", 13, "E", 14, "F", 15,
-                        INT(c)
-                    )
-                RETURN d * POWER(16, [Value])
-            )
-    )
-
-VAR __minColors =
-    ADDCOLUMNS(
-        GENERATESERIES(1, __colorLength),
-        "Min Color Hex", MID(__minValueColor, ([Value] * 2) - 1, 2)
-    )
-
-VAR __minColorsToDec =
-    ADDCOLUMNS(
-        __minColors,
-        "Min Color Dec",
-        VAR __color = [Min Color Hex]
-        RETURN
-            SUMX(
-                GENERATESERIES(0, LEN(__color) - 1),
-                VAR c = MID(__color, LEN(__color) - [Value], 1)
-                VAR d =
-                    SWITCH(
-                        c,
-                        "A", 10, "B", 11, "C", 12,
-                        "D", 13, "E", 14, "F", 15,
-                        INT(c)
-                    )
-                RETURN d * POWER(16, [Value])
-            )
-    )
-
+Dummbels_FULL_RNG_2 = 
+VAR End_ = 60
+var Start_ = 0
+VAR AXISRANGE = End_-Start_
+VAR Actual = [SCORE_Weighted]
+VAR MAX_SCORE = MIN(100,[WEIGHT_AVG]*100)
+VAR NODE = (Actual/MAX_SCORE)*AXISRANGE
+VAR BarColour = [COLOR_CODE]
+VAR BarColourStop = [COLOR_CODE_STOPE]
+VAR SORT = [SCORE_Weighted]
+VAR Result = IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]) || HASONEVALUE('malmash_bankait_converter'[Groups]),
+"data:image/svg+xml;utf8," & "
+    <svg desc = 'KFIR' width='150' height='30' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 215 30' overflow='visible'>
+        <defs><linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"&BarColour&"'/><stop offset='100%' stop-color='"&BarColourStop&"'/></linearGradient></defs>
+        <rect id='track' x="&"'"&Start_&"'"&" y='9' width="&"'"&AXISRANGE&"'"&" height='3' fill='#D0D0D0'/>
+        <rect id='track' x="&"'"&End_&"'"&" y='5' width='3' height='10' fill='#D0D0D0'/>
+        <rect id='track' x="&"'"&Start_&"'"&" y='5' width='3' height='10' fill='#D0D0D0'/>
+        <circle id='cat_2' cx="&"'"&NODE&"'"&" cy='10' r='10' width='2' height='20' fill='url(#barGrad)' ></circle>
+        <text x="&"'"&End_+10&"'"&" y='15' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='18' >"&FORMAT(Actual, "0.0")&"/"&FORMAT(MAX_SCORE, "0")&"</text>       
+    </svg>
+", BLANK())
 RETURN
-    NATURALINNERJOIN(
-        NATURALINNERJOIN(__minColorsToDec, __midColorsToDec),
-        __maxColorsToDec
-    )
-
-Gradient Color 3 Stops =
-VAR __colorTable = 'Color Table 3'
-
-VAR _MAX =
-    MAXX(
-        ALLSELECTED('malmash_bankait_converter'[ESHKOL]),
-        [SPREAD_2_ACTUAL_MULTIPL]
-    )
-
-VAR _MIN =
-    MINX(
-        ALLSELECTED('malmash_bankait_converter'[ESHKOL]),
-        [SPREAD_2_ACTUAL_MULTIPL]
-    )
-
-VAR _Min_Max_Diff = _MAX - _MIN
-
-VAR __val =
-    DIVIDE(
-        [SPREAD_2_ACTUAL_MULTIPL] - _MIN,
-        _Min_Max_Diff,
-        0
-    )
-
-VAR __decTable =
-    ADDCOLUMNS(
-        __colorTable,
-        "@dec",
-        VAR __segmentValue =
-            IF(
-                __val <= 0.5,
-                INT(
-                    ( __val * 2 ) * [Mid Color Dec]
-                    + ( 1 - ( __val * 2 ) ) * [Min Color Dec]
-                ),
-                INT(
-                    ( ( __val - 0.5 ) * 2 ) * [Max Color Dec]
-                    + ( 1 - ( ( __val - 0.5 ) * 2 ) ) * [Mid Color Dec]
-                )
-            )
-        RETURN __segmentValue
-    )
-
-VAR Base = 16
-
-VAR BitTable =
-    GENERATESERIES(1, 2)
-
-VAR __hexTable =
-    ADDCOLUMNS(
-        __decTable,
-        "@Hex",
-        VAR __color = [@dec]
-        RETURN
-            CONCATENATEX(
-                BitTable,
-                VAR c =
-                    MOD(
-                        TRUNC(__color / POWER(Base, [Value] - 1)),
-                        Base
-                    )
-                RETURN
-                    SWITCH(
-                        c,
-                        10, "A",
-                        11, "B",
-                        12, "C",
-                        13, "D",
-                        14, "E",
-                        15, "F",
-                        c
-                    ),
-                ,
-                [Value], DESC
-            )
-    )
-
-RETURN
-    "#" & CONCATENATEX(__hexTable, [@Hex])
-
+Result
+--<circle id='cat_1' cx="&"'"&Start_&"'"&" cy='10' r='10' width='2' height='20' fill='#D0D0D0'></circle>
+--<circle id='cat_1' cx="&"'"&End_&"'"&" cy='10' r='10' width='2' height='20' fill='#D0D0D0'></circle>
