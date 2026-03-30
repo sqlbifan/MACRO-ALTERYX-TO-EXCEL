@@ -1,45 +1,32 @@
-Color Table = 
-VAR __maxValueColor = "DB3236"
-VAR __minValueColor = "FADBDB" 
-VAR __maxColorLength = LEN ( __maxValueColor ) / 2
-VAR __maxColors =
-    ADDCOLUMNS (
-        GENERATESERIES ( 1, __maxColorLength ),
-        "Max Color Hex", MID ( __maxValueColor, ( [Value] * 2 ) - 1, 2 )
+Gradient Color = 
+VAR __colorTable = 'Color Table'
+VAR __val = ( [Sum] - [Min] ) / [Min Max Diff]
+VAR __decTable = 
+ADDCOLUMNS (
+    __colorTable,
+    "@dec",
+    INT (
+    __val *  [Max Color Dec] 
+        + ( 1 - __val )
+            * [Min Color Dec] 
     )
-VAR __maxColorsToDec =
-ADDCOLUMNS (
-    __maxColors,
-    "Max Color Dec",
-    VAR __color = [Max Color Hex]
-    RETURN
-        SUMX (
-            GENERATESERIES ( 0, LEN ( __color ) - 1 ),
-            VAR c = MID ( __color, LEN ( __color ) - [value], 1 )
-            VAR d = SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
-            RETURN
-                d * POWER ( 16, [value] )
-        )
 )
-VAR __minColorLength = LEN ( __minValueColor ) / 2
-VAR __minColors =
-ADDCOLUMNS (
-    GENERATESERIES ( 1, __minColorLength ),
-    "Min Color Hex", MID ( __minValueColor, ( [Value] * 2 ) - 1, 2 )
-)
-VAR __minColorsToDec =
-ADDCOLUMNS (
-    __minColors,
-    "Min Color Dec",
-    VAR __color = [Min Color Hex]
-    RETURN
-        SUMX (
-            GENERATESERIES ( 0, LEN ( __color ) - 1 ),
-            VAR c = MID ( __color, LEN ( __color ) - [value], 1 )
-            VAR d = SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
-            RETURN
-                d * POWER ( 16, [value] )
-        )
-)
-RETURN
-    NATURALINNERJOIN ( __maxColorsToDec, __minColorsToDec )
+	VAR Base = 16
+	VAR BitTable =
+	    GENERATESERIES ( 1, 2 )
+
+VAR __hexTable = 
+	    ADDCOLUMNS( 
+	    	__decTable,
+	    	"@Hex",
+	    	VAR __color = [@dec]
+	    	RETURN
+	    	CONCATENATEX(
+		        BitTable,
+		        VAR c = MOD ( TRUNC ( __color / POWER ( base, [value] - 1 ) ),base )
+		        RETURN SWITCH(c,10,"A",11,"B",12,"C",13,"D",14,"E",15,"F",c),
+		        ,
+		        [Value],Desc)
+	        )
+	                 
+RETURN "#" & CONCATENATEX ( __hexTable, [@Hex] )
