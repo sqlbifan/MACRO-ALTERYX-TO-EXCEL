@@ -1,128 +1,45 @@
-Bad Neutral Good =
-//get the 3 colors (they can be measures too)
-VAR badColor = "#FF0000" //red
-VAR neutralColor = "#FFFFFF" //white
-VAR goodColor = "#00FF00" //green
-//get the min max and neutral value using the other calc items
-VAR minValue =
-    CALCULATE (
-        SELECTEDMEASURE (),
-        'Conditional Formatting'[Conditional Formatting] = "Min Value"
+Color Table = 
+VAR __maxValueColor = "DB3236"
+VAR __minValueColor = "FADBDB" 
+VAR __maxColorLength = LEN ( __maxValueColor ) / 2
+VAR __maxColors =
+    ADDCOLUMNS (
+        GENERATESERIES ( 1, __maxColorLength ),
+        "Max Color Hex", MID ( __maxValueColor, ( [Value] * 2 ) - 1, 2 )
     )
-VAR maxValue =
-    CALCULATE (
-        SELECTEDMEASURE (),
-        'Conditional Formatting'[Conditional Formatting] = "Max Value"
-    )
-VAR neutralValue =
-    CALCULATE (
-        SELECTEDMEASURE (),
-        'Conditional Formatting'[Conditional Formatting] = "Neutral Value"
-    )
-VAR currentValue =
-    SELECTEDMEASURE () //calculate pct, -100% totally bad, 0 neutral, + 100% totally good    
-VAR pct =
-    IF (
-        currentValue >= neutralValue,
-        DIVIDE ( currentValue - neutralvalue, maxValue - neutralValue, 0 ),
-        DIVIDE ( currentValue - neutralValue, neutralValue - minValue, 0 )
-    ) 
-//initialize variables for hex to num  transformation 
-VAR Base = 16
-VAR BitTable =
-    SELECTCOLUMNS ( GENERATESERIES ( 1, 2 ), "bitNum", [Value] )
-VAR t =
-    GENERATE (
-        //create 3 rows to transform each pair of letters independently
-        //it starts on 2 to skip the "#"
-        GENERATESERIES (
-            2,
-            6,
-            2
-        ),
-        //in the first row it will extract chars 2 and 3, for 2nd row 4 and 5 and 3rd row 6 and 7
-        //we prepare one column for each color to be able to interpolate between ther Red Green and Blue values
-        VAR badHex =
-            MID ( badColor, [Value], 2 )
-        VAR neutralHex =
-            MID ( neutralColor, [Value], 2 )
-        VAR goodHex =
-            MID ( goodColor, [Value], 2 ) 
-        //translate each component (rows) of each color (Columns/Variables) to numeric -- credit to Phil Seamark 
-        //https://dax.tips/2019/10/02/dax-base-conversions/#HEX2DEC
-        VAR badNum =
-            SUMX (
-                // Loop control
-                GENERATESERIES ( 0, LEN ( badHex ) - 1 ),
-                // Inner Calc
-                VAR c =
-                    MID ( badHex, LEN ( badHex ) - [value], 1 )
-                VAR d =
-                    SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
-                RETURN
-                    d * POWER ( 16, [value] )
-            )
-        VAR neutralNum =
-            SUMX (
-                // Loop control
-                GENERATESERIES ( 0, LEN ( neutralHex ) - 1 ),
-                // Inner Calc
-                VAR c =
-                    MID ( neutralHex, LEN ( neutralHex ) - [value], 1 )
-                VAR d =
-                    SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
-                RETURN
-                    d * POWER ( 16, [value] )
-            )
-        VAR goodNum =
-            SUMX (
-                // Loop control
-                GENERATESERIES ( 0, LEN ( goodHex ) - 1 ),
-                // Inner Calc
-                VAR c =
-                    MID ( goodHex, LEN ( goodHex ) - [value], 1 )
-                VAR d =
-                    SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
-                RETURN
-                    d * POWER ( 16, [value] )
-            ) //calculate the numeric value of each component for the output color
-        VAR myNumTmp =
-            IF (
-                pct >= 0,
-                ROUND ( neutralnum + pct * ( goodNum - neutralnum ), 0 ),
-                ROUND ( neutralnum + pct * ( neutralnum - badnum ), 0 )
-            ) 
-        //ensure each value is between 0 and 255 for the output color
-        VAR myNum =
-            SWITCH ( TRUE (), myNumTmp > 255, 255, myNumTmp < 0, 0, myNumTmp ) //translate each RGB componenent (rows) for the output color back to HEX 
-        // Convert back to Hexadecimal encoding
-        // Credit once again to Phil Seamark 
-        // https://dax.tips/2019/10/02/dax-base-conversions/#DEC2HEX
-        VAR myHex =
-            CONCATENATEX (
-                BitTable,
-                VAR c =
-                    MOD ( TRUNC ( myNum / POWER ( base, [bitNum] - 1 ) ), base )
-                RETURN
-                    SWITCH ( c, 10, "A", 11, "B", 12, "C", 13, "D", 14, "E", 15, "F", c ),
-                ,
-                [bitNum], DESC
-            )
-        RETURN
-            ROW (
-                "BadHex", badHex,
-                "NeutralHex", neutralHex,
-                "GoodHEx", goodHex,
-                "badnum", badNum,
-                "neutralNum", neutralNum,
-                "goodNum", goodNum,
-                "myNum", myNum,
-                "myHex", myhex
-            )
-    ) 
-//concatenate the RGB components in HEX format for the output color, adding the # at the beginning
-VAR myHex =
-    "#" & CONCATENATEX ( t, [myHex],, [Value], ASC )
+VAR __maxColorsToDec =
+ADDCOLUMNS (
+    __maxColors,
+    "Max Color Dec",
+    VAR __color = [Max Color Hex]
+    RETURN
+        SUMX (
+            GENERATESERIES ( 0, LEN ( __color ) - 1 ),
+            VAR c = MID ( __color, LEN ( __color ) - [value], 1 )
+            VAR d = SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
+            RETURN
+                d * POWER ( 16, [value] )
+        )
+)
+VAR __minColorLength = LEN ( __minValueColor ) / 2
+VAR __minColors =
+ADDCOLUMNS (
+    GENERATESERIES ( 1, __minColorLength ),
+    "Min Color Hex", MID ( __minValueColor, ( [Value] * 2 ) - 1, 2 )
+)
+VAR __minColorsToDec =
+ADDCOLUMNS (
+    __minColors,
+    "Min Color Dec",
+    VAR __color = [Min Color Hex]
+    RETURN
+        SUMX (
+            GENERATESERIES ( 0, LEN ( __color ) - 1 ),
+            VAR c = MID ( __color, LEN ( __color ) - [value], 1 )
+            VAR d = SWITCH ( c, "A", 10, "B", 11, "C", 12, "D", 13, "E", 14, "F", 15, INT ( c ) )
+            RETURN
+                d * POWER ( 16, [value] )
+        )
+)
 RETURN
-    //this is our color!
-    myHex
+    NATURALINNERJOIN ( __maxColorsToDec, __minColorsToDec )
