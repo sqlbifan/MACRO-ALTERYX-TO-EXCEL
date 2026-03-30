@@ -1,32 +1,171 @@
-Gradient Color = 
-VAR __colorTable = 'Color Table'
-VAR __val = ( [Sum] - [Min] ) / [Min Max Diff]
-VAR __decTable = 
-ADDCOLUMNS (
-    __colorTable,
-    "@dec",
-    INT (
-    __val *  [Max Color Dec] 
-        + ( 1 - __val )
-            * [Min Color Dec] 
-    )
-)
-	VAR Base = 16
-	VAR BitTable =
-	    GENERATESERIES ( 1, 2 )
+Color Table 3 =
+VAR __maxValueColor = "3A6BB9"   -- כחול
+VAR __midValueColor = "808080"   -- אפור
+VAR __minValueColor = "A1343C"   -- אדום
 
-VAR __hexTable = 
-	    ADDCOLUMNS( 
-	    	__decTable,
-	    	"@Hex",
-	    	VAR __color = [@dec]
-	    	RETURN
-	    	CONCATENATEX(
-		        BitTable,
-		        VAR c = MOD ( TRUNC ( __color / POWER ( base, [value] - 1 ) ),base )
-		        RETURN SWITCH(c,10,"A",11,"B",12,"C",13,"D",14,"E",15,"F",c),
-		        ,
-		        [Value],Desc)
-	        )
-	                 
-RETURN "#" & CONCATENATEX ( __hexTable, [@Hex] )
+VAR __colorLength = LEN(__maxValueColor) / 2
+
+VAR __maxColors =
+    ADDCOLUMNS(
+        GENERATESERIES(1, __colorLength),
+        "Max Color Hex", MID(__maxValueColor, ([Value] * 2) - 1, 2)
+    )
+
+VAR __maxColorsToDec =
+    ADDCOLUMNS(
+        __maxColors,
+        "Max Color Dec",
+        VAR __color = [Max Color Hex]
+        RETURN
+            SUMX(
+                GENERATESERIES(0, LEN(__color) - 1),
+                VAR c = MID(__color, LEN(__color) - [Value], 1)
+                VAR d =
+                    SWITCH(
+                        c,
+                        "A", 10, "B", 11, "C", 12,
+                        "D", 13, "E", 14, "F", 15,
+                        INT(c)
+                    )
+                RETURN d * POWER(16, [Value])
+            )
+    )
+
+VAR __midColors =
+    ADDCOLUMNS(
+        GENERATESERIES(1, __colorLength),
+        "Mid Color Hex", MID(__midValueColor, ([Value] * 2) - 1, 2)
+    )
+
+VAR __midColorsToDec =
+    ADDCOLUMNS(
+        __midColors,
+        "Mid Color Dec",
+        VAR __color = [Mid Color Hex]
+        RETURN
+            SUMX(
+                GENERATESERIES(0, LEN(__color) - 1),
+                VAR c = MID(__color, LEN(__color) - [Value], 1)
+                VAR d =
+                    SWITCH(
+                        c,
+                        "A", 10, "B", 11, "C", 12,
+                        "D", 13, "E", 14, "F", 15,
+                        INT(c)
+                    )
+                RETURN d * POWER(16, [Value])
+            )
+    )
+
+VAR __minColors =
+    ADDCOLUMNS(
+        GENERATESERIES(1, __colorLength),
+        "Min Color Hex", MID(__minValueColor, ([Value] * 2) - 1, 2)
+    )
+
+VAR __minColorsToDec =
+    ADDCOLUMNS(
+        __minColors,
+        "Min Color Dec",
+        VAR __color = [Min Color Hex]
+        RETURN
+            SUMX(
+                GENERATESERIES(0, LEN(__color) - 1),
+                VAR c = MID(__color, LEN(__color) - [Value], 1)
+                VAR d =
+                    SWITCH(
+                        c,
+                        "A", 10, "B", 11, "C", 12,
+                        "D", 13, "E", 14, "F", 15,
+                        INT(c)
+                    )
+                RETURN d * POWER(16, [Value])
+            )
+    )
+
+RETURN
+    NATURALINNERJOIN(
+        NATURALINNERJOIN(__minColorsToDec, __midColorsToDec),
+        __maxColorsToDec
+    )
+
+Gradient Color 3 Stops =
+VAR __colorTable = 'Color Table 3'
+
+VAR _MAX =
+    MAXX(
+        ALLSELECTED('malmash_bankait_converter'[ESHKOL]),
+        [SPREAD_2_ACTUAL_MULTIPL]
+    )
+
+VAR _MIN =
+    MINX(
+        ALLSELECTED('malmash_bankait_converter'[ESHKOL]),
+        [SPREAD_2_ACTUAL_MULTIPL]
+    )
+
+VAR _Min_Max_Diff = _MAX - _MIN
+
+VAR __val =
+    DIVIDE(
+        [SPREAD_2_ACTUAL_MULTIPL] - _MIN,
+        _Min_Max_Diff,
+        0
+    )
+
+VAR __decTable =
+    ADDCOLUMNS(
+        __colorTable,
+        "@dec",
+        VAR __segmentValue =
+            IF(
+                __val <= 0.5,
+                INT(
+                    ( __val * 2 ) * [Mid Color Dec]
+                    + ( 1 - ( __val * 2 ) ) * [Min Color Dec]
+                ),
+                INT(
+                    ( ( __val - 0.5 ) * 2 ) * [Max Color Dec]
+                    + ( 1 - ( ( __val - 0.5 ) * 2 ) ) * [Mid Color Dec]
+                )
+            )
+        RETURN __segmentValue
+    )
+
+VAR Base = 16
+
+VAR BitTable =
+    GENERATESERIES(1, 2)
+
+VAR __hexTable =
+    ADDCOLUMNS(
+        __decTable,
+        "@Hex",
+        VAR __color = [@dec]
+        RETURN
+            CONCATENATEX(
+                BitTable,
+                VAR c =
+                    MOD(
+                        TRUNC(__color / POWER(Base, [Value] - 1)),
+                        Base
+                    )
+                RETURN
+                    SWITCH(
+                        c,
+                        10, "A",
+                        11, "B",
+                        12, "C",
+                        13, "D",
+                        14, "E",
+                        15, "F",
+                        c
+                    ),
+                ,
+                [Value], DESC
+            )
+    )
+
+RETURN
+    "#" & CONCATENATEX(__hexTable, [@Hex])
+
