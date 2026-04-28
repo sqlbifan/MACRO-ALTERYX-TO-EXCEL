@@ -1,33 +1,26 @@
-SVG Bar - Step 2 = 
-
+SVG Bar = 
 VAR SVGWidth = 200
 VAR SVGHeight = 25
-
-VAR SalesMin = MINX( ALLSELECTED( dimDate[MonthYear] ) , [Sales Total] ) * 0.9
-VAR SalesMax = MAXX( ALLSELECTED( dimDate[MonthYear] ) , [Sales Total] )
-
-VAR DateMin = MIN( dimDate[MonthYear] )
-VAR DateMax = MAX( dimDate[MonthYear] )
-
+VAR SalesMin = MINX( ALLSELECTED( 'Calendar'[Calender_Date] ) , [Mobility_Denominator] ) * 0.9
+VAR SalesMax = MAXX( ALLSELECTED( 'Calendar'[Calender_Date]  ) , [Mobility_Denominator] )
+VAR DateMin = MIN( 'Calendar'[Calender_Date]  )
+VAR DateMax = MAX( 'Calendar'[Calender_Date]  )
 VAR BarWidth = 10 
-VAR BarHeight = DIVIDE( [Sales Total] - SalesMin , SalesMax - SalesMin ) * SVGHeight
-
+VAR BarHeight = DIVIDE( [Mobility_Denominator] - SalesMin , SalesMax - SalesMin ) * SVGHeight
 VAR TblColumns = 
 ADDCOLUMNS(
-    SUMMARIZE('dimDate',dimDate[MonthYear]),
+    SUMMARIZE('Calendar','Calendar'[Calender_Date] ),
     "@Columns", 
     "<rect 
-    x='" & DIVIDE( dimDate[MonthYear] - DateMin, DateMax - DateMin) * (SVGWidth - BarWidth) & "' 
-    y='"& SVGHeight - DIVIDE( [Sales Total] - SalesMin, SalesMax - SalesMin ) * SVGHeight &"' 
-   width='" & BarWidth & "' height='" & DIVIDE( [Sales Total] - SalesMin, SalesMax - SalesMin ) * SVGHeight & "' fill='blue' 
+    x='" & DIVIDE( 'Calendar'[Calender_Date]  - DateMin, DateMax - DateMin) * (SVGWidth - BarWidth) & "' 
+    y='"& SVGHeight - DIVIDE( [Mobility_Denominator] - SalesMin, SalesMax - SalesMin ) * SVGHeight &"' 
+   width='" & BarWidth & "' height='" & DIVIDE( [Mobility_Denominator] - SalesMin, SalesMax - SalesMin ) * SVGHeight & "' fill='blue' 
     />
     "
 )
-
 VAR Img = 
 "data:image/svg+xml;utf8, " & 
 "<svg width='"& SVGWidth &"' height='"& SVGHeight &"' xmlns='http://www.w3.org/2000/svg'>
 "& CONCATENATEX(TblColumns, [@Columns]) & "</svg>"
-
 RETURN
     Img
