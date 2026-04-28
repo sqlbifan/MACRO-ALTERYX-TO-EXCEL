@@ -1,26 +1,63 @@
 SVG Bar = 
 VAR SVGWidth = 200
 VAR SVGHeight = 25
-VAR SalesMin = MINX( ALLSELECTED( 'Calendar'[Calender_Date] ) , [Mobility_Denominator] ) * 0.9
-VAR SalesMax = MAXX( ALLSELECTED( 'Calendar'[Calender_Date]  ) , [Mobility_Denominator] )
-VAR DateMin = MIN( 'Calendar'[Calender_Date]  )
-VAR DateMax = MAX( 'Calendar'[Calender_Date]  )
-VAR BarWidth = 10 
-VAR BarHeight = DIVIDE( [Mobility_Denominator] - SalesMin , SalesMax - SalesMin ) * SVGHeight
+VAR _LINE = [@LINE]
+
+VAR SalesMin =
+    MINX(
+        ALLSELECTED('Calendar'[Calender_Date]),
+        [Mobility_Denominator]
+    ) * 0.9
+
+VAR SalesMax =
+    MAXX(
+        ALLSELECTED('Calendar'[Calender_Date]),
+        [Mobility_Denominator]
+    )
+
+VAR DateMin = MIN('Calendar'[Calender_Date])
+VAR DateMax = MAX('Calendar'[Calender_Date])
+
+VAR BarWidth = 10
+
+VAR LineX =
+    DIVIDE(
+        _LINE - DateMin,
+        DateMax - DateMin
+    ) * SVGWidth
+
 VAR TblColumns = 
-ADDCOLUMNS(
-    SUMMARIZE('Calendar','Calendar'[Calender_Date] ),
-    "@Columns", 
-    "<rect 
-    x='" & DIVIDE( 'Calendar'[Calender_Date]  - DateMin, DateMax - DateMin) * (SVGWidth - BarWidth) & "' 
-    y='"& SVGHeight - DIVIDE( [Mobility_Denominator] - SalesMin, SalesMax - SalesMin ) * SVGHeight &"' 
-   width='" & BarWidth & "' height='" & DIVIDE( [Mobility_Denominator] - SalesMin, SalesMax - SalesMin ) * SVGHeight & "' fill='blue' 
-    />
-    "
-)
+    ADDCOLUMNS(
+        SUMMARIZE(
+            'Calendar',
+            'Calendar'[Calender_Date]
+        ),
+        "@Columns", 
+        "<rect 
+            x='" & DIVIDE('Calendar'[Calender_Date] - DateMin, DateMax - DateMin) * (SVGWidth - BarWidth) & "' 
+            y='" & SVGHeight - DIVIDE([Mobility_Denominator] - SalesMin, SalesMax - SalesMin) * SVGHeight & "' 
+            width='" & BarWidth & "' 
+            height='" & DIVIDE([Mobility_Denominator] - SalesMin, SalesMax - SalesMin) * SVGHeight & "' 
+            fill='blue' 
+        />"
+    )
+
+VAR LineElement =
+    "<line 
+        x1='" & LineX & "' 
+        y1='0' 
+        x2='" & LineX & "' 
+        y2='" & SVGHeight & "' 
+        stroke='red' 
+        stroke-width='2' 
+    />"
+
 VAR Img = 
-"data:image/svg+xml;utf8, " & 
-"<svg width='"& SVGWidth &"' height='"& SVGHeight &"' xmlns='http://www.w3.org/2000/svg'>
-"& CONCATENATEX(TblColumns, [@Columns]) & "</svg>"
+    "data:image/svg+xml;utf8, " & 
+    "<svg width='" & SVGWidth & "' height='" & SVGHeight & "' xmlns='http://www.w3.org/2000/svg'>
+        " & CONCATENATEX(TblColumns, [@Columns]) & "
+        " & LineElement & "
+    </svg>"
+
 RETURN
     Img
