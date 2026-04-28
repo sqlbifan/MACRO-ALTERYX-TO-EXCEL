@@ -1,24 +1,33 @@
-Dummbels_FULL_RNG_2 = 
-VAR End_ = 60
-var Start_ = 0
-VAR AXISRANGE = End_-Start_
-VAR Actual = [SCORE_Weighted]
-VAR MAX_SCORE = MIN(100,[WEIGHT_AVG]*100)
-VAR NODE = (Actual/MAX_SCORE)*AXISRANGE
-VAR BarColour = [COLOR_CODE]
-VAR BarColourStop = [COLOR_CODE_STOPE]
-VAR SORT = [SCORE_Weighted]
-VAR Result = IF(HASONEVALUE('malmash_bankait_converter'[Zone_Desc_Update_FULL]) || HASONEVALUE('malmash_bankait_converter'[Groups]),
-"data:image/svg+xml;utf8," & "
-    <svg desc = 'KFIR' width='150' height='30' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 215 30' overflow='visible'>
-        <defs><linearGradient id='barGrad' x1='0' y1='0' x2='0' y2='1'><stop offset='0%' stop-color='"&BarColour&"'/><stop offset='100%' stop-color='"&BarColourStop&"'/></linearGradient></defs>
-        <rect id='track' x="&"'"&Start_&"'"&" y='9' width="&"'"&AXISRANGE&"'"&" height='3' fill='#D0D0D0'/>
-        <rect id='track' x="&"'"&End_&"'"&" y='5' width='3' height='10' fill='#D0D0D0'/>
-        <rect id='track' x="&"'"&Start_&"'"&" y='5' width='3' height='10' fill='#D0D0D0'/>
-        <circle id='cat_2' cx="&"'"&NODE&"'"&" cy='10' r='10' width='2' height='20' fill='url(#barGrad)' ></circle>
-        <text x="&"'"&End_+10&"'"&" y='15' font-weight='bold' font-family='Segoe UI, sans-serif' font-size='18' >"&FORMAT(Actual, "0.0")&"/"&FORMAT(MAX_SCORE, "0")&"</text>       
-    </svg>
-", BLANK())
-RETURN
-Result
+SVG Bar - Step 2 = 
 
+VAR SVGWidth = 200
+VAR SVGHeight = 25
+
+VAR SalesMin = MINX( ALLSELECTED( dimDate[MonthYear] ) , [Sales Total] ) * 0.9
+VAR SalesMax = MAXX( ALLSELECTED( dimDate[MonthYear] ) , [Sales Total] )
+
+VAR DateMin = MIN( dimDate[MonthYear] )
+VAR DateMax = MAX( dimDate[MonthYear] )
+
+VAR BarWidth = 10 
+VAR BarHeight = DIVIDE( [Sales Total] - SalesMin , SalesMax - SalesMin ) * SVGHeight
+
+VAR TblColumns = 
+ADDCOLUMNS(
+    SUMMARIZE('dimDate',dimDate[MonthYear]),
+    "@Columns", 
+    "<rect 
+    x='" & DIVIDE( dimDate[MonthYear] - DateMin, DateMax - DateMin) * (SVGWidth - BarWidth) & "' 
+    y='"& SVGHeight - DIVIDE( [Sales Total] - SalesMin, SalesMax - SalesMin ) * SVGHeight &"' 
+   width='" & BarWidth & "' height='" & DIVIDE( [Sales Total] - SalesMin, SalesMax - SalesMin ) * SVGHeight & "' fill='blue' 
+    />
+    "
+)
+
+VAR Img = 
+"data:image/svg+xml;utf8, " & 
+"<svg width='"& SVGWidth &"' height='"& SVGHeight &"' xmlns='http://www.w3.org/2000/svg'>
+"& CONCATENATEX(TblColumns, [@Columns]) & "</svg>"
+
+RETURN
+    Img
